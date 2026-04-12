@@ -1,9 +1,11 @@
-import { auth } from "@/auth";
+import NextAuth from "next-auth";
+import { authConfig } from "@/auth.config";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const { auth } = NextAuth(authConfig);
 const intlMiddleware = createMiddleware(routing);
 
 const publicPaths = ["/login", "/api/auth"];
@@ -14,7 +16,6 @@ function isPublicPath(pathname: string): boolean {
   );
 }
 
-// Strip locale prefix to get the base path
 function stripLocale(pathname: string): string {
   const locales = routing.locales as readonly string[];
   for (const locale of locales) {
@@ -25,22 +26,22 @@ function stripLocale(pathname: string): string {
   return pathname;
 }
 
-export default auth(async function middleware(req: NextRequest & { auth: unknown }) {
+export default auth(function middleware(
+  req: NextRequest & { auth?: { user?: unknown } | null }
+) {
   const { pathname } = req.nextUrl;
   const basePath = stripLocale(pathname);
 
-  // Always allow public paths and static assets
   if (
     isPublicPath(basePath) ||
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon")
+    pathname.startsWith("/favicon") ||
+    pathname.startsWith("/api/")
   ) {
     return intlMiddleware(req);
   }
 
-  // Require auth for all other routes
-  const session = (req as { auth?: { user?: unknown } }).auth;
-  if (!session?.user) {
+  if (!req.auth?.user) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackUrl", req.url);
     return NextResponse.redirect(loginUrl);

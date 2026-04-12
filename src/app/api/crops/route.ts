@@ -1,0 +1,34 @@
+import { NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { db } from "@/lib/db";
+import type { CropType } from "@/generated/prisma/client";
+
+export async function POST(req: Request) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await req.json();
+  const { fieldId, year, cropType } = body;
+
+  if (!fieldId || !year || !cropType) {
+    return NextResponse.json({ error: "fieldId, year, cropType required" }, { status: 400 });
+  }
+
+  // Leaseholders can only update their own fields
+  if (session.user.role === "LEASEHOLDER") {
+    const field = await db.field.findUnique({ where: { id: fieldId } });
+    if (!field || field.leaseholderId !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
+
+  const crop = await db.cropHistory.upsert({
+    where: { fieldId_year: { fieldId, year: parseInt(year) } },
+    update: { cropType: cropType as CropType },
+    create: { fieldId, year: parseInt(year), cropType: cropType as CropType },
+  });
+
+  return NextResponse.json(crop);
+}
