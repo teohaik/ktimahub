@@ -82,7 +82,9 @@ export default function FullReportButton({ fields }: Props) {
         return y + 7;
       }
 
+      let pageNum = 0;
       function addPageNumber() {
+        pageNum++;
         doc.setFontSize(7);
         doc.setTextColor(156, 163, 175);
         doc.setFont("helvetica", "normal");
@@ -92,7 +94,7 @@ export default function FullReportButton({ fields }: Props) {
           pageH - 6
         );
         doc.text(
-          `Σελίδα ${doc.getCurrentPageInfo().pageNumber}`,
+          `Σελίδα ${pageNum}`,
           pageW - margin - 20,
           pageH - 6
         );
