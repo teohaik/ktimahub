@@ -20,13 +20,15 @@ export default async function AppShell({
     redirect(`/${locale}/login`);
   }
 
-  if (allowedRoles && !allowedRoles.includes(session.user.role as Role)) {
+  const activeRole = session.user.activeRole as Role | null;
+
+  if (allowedRoles && (!activeRole || !allowedRoles.includes(activeRole))) {
     redirect(`/${locale}`);
   }
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar role={session.user.role as Role} userName={session.user.name} />
+      <Navbar role={activeRole as Role} userName={session.user.name} />
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {children}
       </main>

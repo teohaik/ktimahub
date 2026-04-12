@@ -14,7 +14,14 @@ export default async function HomePage({
     redirect(`/${locale}/login`);
   }
 
-  const role = session.user.role as Role;
+  const { roles, activeRole } = session.user;
+
+  // If the user has multiple roles and hasn't picked one yet, ask them
+  if (!activeRole && roles.length > 1) {
+    redirect(`/${locale}/select-role`);
+  }
+
+  const role = (activeRole ?? roles[0]) as Role;
 
   switch (role) {
     case "SUPER_ADMIN":

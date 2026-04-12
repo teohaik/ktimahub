@@ -13,7 +13,7 @@ export default async function UsersPage({
   const t = await getTranslations();
 
   const users = await db.user.findMany({
-    select: { id: true, name: true, email: true, role: true, createdAt: true },
+    select: { id: true, name: true, email: true, roles: true, createdAt: true },
     orderBy: { name: "asc" },
   });
 

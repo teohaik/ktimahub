@@ -19,18 +19,17 @@ export const authConfig: NextAuthConfig = {
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        token.role = (user as any).role;
-        token.id = user.id;
-      }
+    async jwt({ token }) {
+      // roles and activeRole are written by the full auth.ts callback;
+      // just pass the token through here.
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (session.user as any).role = token.role;
+        (session.user as any).roles = token.roles;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (session.user as any).activeRole = token.activeRole;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (session.user as any).id = token.id;
       }

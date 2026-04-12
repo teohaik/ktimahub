@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   }
 
   // Leaseholders can only update their own fields
-  if (session.user.role === "LEASEHOLDER") {
+  if (session.user.activeRole === "LEASEHOLDER") {
     const field = await db.field.findUnique({ where: { id: fieldId } });
     if (!field || field.leaseholderId !== session.user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });

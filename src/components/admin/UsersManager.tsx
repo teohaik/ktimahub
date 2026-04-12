@@ -9,7 +9,7 @@ interface User {
   id: string;
   name: string | null;
   email: string | null;
-  role: Role;
+  roles: Role[];
   createdAt: Date | string;
 }
 
@@ -75,9 +75,11 @@ export default function UsersManager({ users: initial }: { users: User[] }) {
               <div className="min-w-0">
                 <p className="font-medium text-gray-900 truncate">{u.name}</p>
                 <p className="text-xs text-gray-500 truncate">{u.email}</p>
-                <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full font-medium ${roleBadge[u.role]}`}>
-                  {t(`users.${u.role}`)}
-                </span>
+                {u.roles.map((r) => (
+                  <span key={r} className={`inline-block mt-1 mr-1 text-xs px-2 py-0.5 rounded-full font-medium ${roleBadge[r]}`}>
+                    {t(`users.${r}`)}
+                  </span>
+                ))}
               </div>
               <div className="flex gap-2 shrink-0">
                 <button onClick={() => openEdit(u)} className="text-xs text-green-600 hover:underline">{t("common.edit")}</button>
@@ -103,9 +105,11 @@ export default function UsersManager({ users: initial }: { users: User[] }) {
                 <td className="px-5 py-3 font-medium text-gray-900">{u.name}</td>
                 <td className="px-5 py-3 text-gray-600">{u.email}</td>
                 <td className="px-5 py-3">
-                  <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${roleBadge[u.role]}`}>
-                    {t(`users.${u.role}`)}
-                  </span>
+                  {u.roles.map((r) => (
+                    <span key={r} className={`inline-flex mr-1 px-2 py-0.5 text-xs font-medium rounded-full ${roleBadge[r]}`}>
+                      {t(`users.${r}`)}
+                    </span>
+                  ))}
                 </td>
                 <td className="px-5 py-3">
                   <div className="flex gap-3">
@@ -143,7 +147,7 @@ function UserModal({
   const isEdit = !!user;
   const [name, setName] = useState(user?.name ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
-  const [role, setRole] = useState<Role>(user?.role ?? "LEASEHOLDER");
+  const [role, setRole] = useState<Role>(user?.roles?.[0] ?? "LEASEHOLDER");
   const [password, setPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");

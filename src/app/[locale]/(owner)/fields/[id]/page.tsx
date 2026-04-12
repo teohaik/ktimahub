@@ -18,7 +18,7 @@ export default async function EditFieldPage({
   const [field, leaseholders] = await Promise.all([
     db.field.findUnique({ where: { id } }),
     db.user.findMany({
-      where: { role: "LEASEHOLDER" },
+      where: { roles: { has: "LEASEHOLDER" } },
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),

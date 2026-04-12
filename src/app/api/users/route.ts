@@ -6,12 +6,12 @@ import type { Role } from "@/generated/prisma/client";
 
 export async function GET() {
   const session = await auth();
-  if (!session?.user || session.user.role !== "SUPER_ADMIN") {
+  if (!session?.user || session.user.activeRole !== "SUPER_ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const users = await db.user.findMany({
-    select: { id: true, name: true, email: true, role: true, createdAt: true },
+    select: { id: true, name: true, email: true, roles: true, createdAt: true },
     orderBy: { name: "asc" },
   });
 
@@ -20,7 +20,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const session = await auth();
-  if (!session?.user || session.user.role !== "SUPER_ADMIN") {
+  if (!session?.user || session.user.activeRole !== "SUPER_ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -42,10 +42,10 @@ export async function POST(req: Request) {
     data: {
       name,
       email,
-      role: role as Role,
+      roles: [role as Role],
       password: hashedPassword,
     },
-    select: { id: true, name: true, email: true, role: true, createdAt: true },
+    select: { id: true, name: true, email: true, roles: true, createdAt: true },
   });
 
   return NextResponse.json(user, { status: 201 });

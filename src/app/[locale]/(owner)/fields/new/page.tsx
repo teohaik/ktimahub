@@ -14,7 +14,7 @@ export default async function NewFieldPage({
   const t = await getTranslations();
 
   const leaseholders = await db.user.findMany({
-    where: { role: "LEASEHOLDER" },
+    where: { roles: { has: "LEASEHOLDER" } },
     select: { id: true, name: true },
     orderBy: { name: "asc" },
   });

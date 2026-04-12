@@ -80,6 +80,13 @@
     "LAND_OWNER": "Land Owner",
     "LEASEHOLDER": "Leaseholder"
   },
+  "roleSelection": {
+    "title": "Choose a role",
+    "subtitle": "Your account has multiple roles. Select how you want to continue.",
+    "SUPER_ADMIN": "Manage users and system settings",
+    "LAND_OWNER": "View and manage all fields",
+    "LEASEHOLDER": "Declare crops for your assigned fields"
+  },
   "map": {
     "title": "Fields map",
     "satellite": "Satellite",

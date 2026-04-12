@@ -40,17 +40,35 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
+      // On sign-in: load roles from DB
       if (user) {
-        token.role = (user as { role: Role }).role;
-        token.id = user.id;
+        const dbUser = await db.user.findUnique({
+          where: { id: user.id },
+          select: { roles: true },
+        });
+        const roles = (dbUser?.roles ?? ["LEASEHOLDER"]) as Role[];
+        token.id = user.id!;
+        token.roles = roles;
+        // Auto-select if only one role; otherwise require explicit selection
+        token.activeRole = roles.length === 1 ? roles[0] : null;
       }
+
+      // On session update (role selection): validate and store chosen role
+      if (trigger === "update" && session?.activeRole) {
+        const requested = session.activeRole as Role;
+        if ((token.roles as Role[]).includes(requested)) {
+          token.activeRole = requested;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.role = token.role as Role;
         session.user.id = token.id as string;
+        session.user.roles = token.roles as Role[];
+        session.user.activeRole = token.activeRole as Role | null;
       }
       return session;
     },

@@ -8,7 +8,7 @@ type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_req: Request, { params }: Params) {
   const session = await auth();
-  if (!session?.user || session.user.role !== "LAND_OWNER") {
+  if (!session?.user || session.user.activeRole !== "LAND_OWNER") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -27,7 +27,7 @@ export async function GET(_req: Request, { params }: Params) {
 
 export async function PUT(req: Request, { params }: Params) {
   const session = await auth();
-  if (!session?.user || session.user.role !== "LAND_OWNER") {
+  if (!session?.user || session.user.activeRole !== "LAND_OWNER") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -58,7 +58,7 @@ export async function PUT(req: Request, { params }: Params) {
 
 export async function DELETE(_req: Request, { params }: Params) {
   const session = await auth();
-  if (!session?.user || session.user.role !== "LAND_OWNER") {
+  if (!session?.user || session.user.activeRole !== "LAND_OWNER") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

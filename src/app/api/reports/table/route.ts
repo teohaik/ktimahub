@@ -6,7 +6,7 @@ import { FieldsTablePdf } from "@/lib/pdf/FieldsTablePdf";
 
 export async function GET() {
   const session = await auth();
-  if (!session?.user || session.user.role !== "LAND_OWNER") {
+  if (!session?.user || session.user.activeRole !== "LAND_OWNER") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

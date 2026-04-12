@@ -16,11 +16,13 @@ export async function requireAuth(locale: string) {
 
 /**
  * Server-side helper — gets session and enforces a specific role.
+ * Checks activeRole (the role the user selected at login).
  * Redirects to login if not authenticated, or to home if wrong role.
  */
 export async function requireRole(locale: string, ...roles: Role[]) {
   const session = await requireAuth(locale);
-  if (!roles.includes(session.user.role as Role)) {
+  const active = session.user.activeRole as Role | null;
+  if (!active || !roles.includes(active)) {
     redirect(`/${locale}`);
   }
   return session;

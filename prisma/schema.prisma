@@ -28,7 +28,7 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
-  role          Role      @default(LEASEHOLDER)
+  roles         Role[]    @default([LEASEHOLDER])
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

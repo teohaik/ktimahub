@@ -6,7 +6,7 @@ import type { LatLng } from "@/lib/map/types";
 
 export async function GET() {
   const session = await auth();
-  if (!session?.user || session.user.role !== "LAND_OWNER") {
+  if (!session?.user || session.user.activeRole !== "LAND_OWNER") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -20,7 +20,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const session = await auth();
-  if (!session?.user || session.user.role !== "LAND_OWNER") {
+  if (!session?.user || session.user.activeRole !== "LAND_OWNER") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

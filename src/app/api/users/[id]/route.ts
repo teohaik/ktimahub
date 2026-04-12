@@ -8,7 +8,7 @@ type Params = { params: Promise<{ id: string }> };
 
 export async function PUT(req: Request, { params }: Params) {
   const session = await auth();
-  if (!session?.user || session.user.role !== "SUPER_ADMIN") {
+  if (!session?.user || session.user.activeRole !== "SUPER_ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -16,7 +16,7 @@ export async function PUT(req: Request, { params }: Params) {
   const body = await req.json();
   const { name, email, password, role } = body;
 
-  const data: Record<string, unknown> = { name, email, role: role as Role };
+  const data: Record<string, unknown> = { name, email, roles: [role as Role] };
   if (password) {
     data.password = await bcrypt.hash(password, 12);
   }
@@ -24,7 +24,7 @@ export async function PUT(req: Request, { params }: Params) {
   const user = await db.user.update({
     where: { id },
     data,
-    select: { id: true, name: true, email: true, role: true, createdAt: true },
+    select: { id: true, name: true, email: true, roles: true, createdAt: true },
   });
 
   return NextResponse.json(user);
@@ -32,7 +32,7 @@ export async function PUT(req: Request, { params }: Params) {
 
 export async function DELETE(_req: Request, { params }: Params) {
   const session = await auth();
-  if (!session?.user || session.user.role !== "SUPER_ADMIN") {
+  if (!session?.user || session.user.activeRole !== "SUPER_ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
