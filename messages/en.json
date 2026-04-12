@@ -1,0 +1,89 @@
+{
+  "common": {
+    "appName": "Field Manager",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "search": "Search",
+    "actions": "Actions",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "back": "Back",
+    "print": "Print",
+    "showOnMap": "Show on map",
+    "switchLanguage": "Ελληνικά"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "loginWithGoogle": "Sign in with Google",
+    "loginWithCredentials": "Sign in with email",
+    "invalidCredentials": "Invalid credentials"
+  },
+  "nav": {
+    "fields": "Fields",
+    "map": "Map",
+    "users": "Users",
+    "myFields": "My Fields"
+  },
+  "fields": {
+    "title": "Fields",
+    "addField": "Add field",
+    "editField": "Edit field",
+    "fieldId": "ID",
+    "kaek": "KAEK",
+    "name": "Name",
+    "officialArea": "Official area (m²)",
+    "calculatedArea": "Calculated area (m²)",
+    "leaseholder": "Leaseholder",
+    "noLeaseholder": "No leaseholder",
+    "actions": "Actions",
+    "drawMode": "Draw on map",
+    "pasteMode": "Paste coordinates",
+    "addVertex": "Add vertex",
+    "addCurrentLocation": "Add current location",
+    "pasteCoordinates": "Paste coordinates from Land Registry",
+    "importCoordinates": "Import",
+    "clearPolygon": "Clear polygon",
+    "reportTable": "Print table",
+    "reportFull": "Full report"
+  },
+  "crops": {
+    "title": "Crops",
+    "currentYear": "Current year",
+    "history": "Crop history",
+    "year": "Year",
+    "crop": "Crop",
+    "setCrop": "Set crop",
+    "WHEAT": "Wheat",
+    "BARLEY": "Barley",
+    "COTTON": "Cotton",
+    "VETCH": "Vetch",
+    "CLOVER": "Clover",
+    "noCrop": "No crop"
+  },
+  "users": {
+    "title": "User Management",
+    "addUser": "Add user",
+    "editUser": "Edit user",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "password": "Password",
+    "SUPER_ADMIN": "Super Admin",
+    "LAND_OWNER": "Land Owner",
+    "LEASEHOLDER": "Leaseholder"
+  },
+  "map": {
+    "title": "Fields map",
+    "satellite": "Satellite",
+    "street": "Street map",
+    "allFields": "All fields"
+  }
+}

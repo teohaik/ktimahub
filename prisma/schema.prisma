@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPER_ADMIN
+  LAND_OWNER
+  LEASEHOLDER
+}
+
+enum CropType {
+  WHEAT
+  BARLEY
+  COTTON
+  VETCH
+  CLOVER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(LEASEHOLDER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  leasedFields  Field[]   @relation("FieldLeaseholder")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Field {
+  id               String   @id @default(cuid())
+  name             String
+  kaek             String
+  officialArea     Float    // m² from land registry, manually entered
+  calculatedArea   Float?   // m² auto-calculated from polygon
+  polygon          Json?    // GeoJSON array of { lat, lng } vertices
+  leaseholderId    String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  leaseholder  User?         @relation("FieldLeaseholder", fields: [leaseholderId], references: [id])
+  cropHistory  CropHistory[]
+}
+
+model CropHistory {
+  id        String   @id @default(cuid())
+  fieldId   String
+  year      Int
+  cropType  CropType
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  field Field @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@unique([fieldId, year])
+}

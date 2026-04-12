@@ -1,0 +1,89 @@
+{
+  "common": {
+    "appName": "Διαχείριση Αγροτεμαχίων",
+    "loading": "Φόρτωση...",
+    "save": "Αποθήκευση",
+    "cancel": "Ακύρωση",
+    "edit": "Επεξεργασία",
+    "delete": "Διαγραφή",
+    "add": "Προσθήκη",
+    "search": "Αναζήτηση",
+    "actions": "Ενέργειες",
+    "yes": "Ναι",
+    "no": "Όχι",
+    "confirm": "Επιβεβαίωση",
+    "back": "Πίσω",
+    "print": "Εκτύπωση",
+    "showOnMap": "Εμφάνιση στον χάρτη",
+    "switchLanguage": "English"
+  },
+  "auth": {
+    "login": "Σύνδεση",
+    "logout": "Αποσύνδεση",
+    "email": "Email",
+    "password": "Κωδικός",
+    "loginWithGoogle": "Σύνδεση με Google",
+    "loginWithCredentials": "Σύνδεση με email",
+    "invalidCredentials": "Λανθασμένα στοιχεία σύνδεσης"
+  },
+  "nav": {
+    "fields": "Αγροτεμάχια",
+    "map": "Χάρτης",
+    "users": "Χρήστες",
+    "myFields": "Τα αγροτεμάχιά μου"
+  },
+  "fields": {
+    "title": "Αγροτεμάχια",
+    "addField": "Προσθήκη αγροτεμαχίου",
+    "editField": "Επεξεργασία αγροτεμαχίου",
+    "fieldId": "Α/Α",
+    "kaek": "ΚΑΕΚ",
+    "name": "Ονομασία",
+    "officialArea": "Επίσημο εμβαδόν (τ.μ.)",
+    "calculatedArea": "Υπολογιζόμενο εμβαδόν (τ.μ.)",
+    "leaseholder": "Ενοικιαστής",
+    "noLeaseholder": "Χωρίς ενοικιαστή",
+    "actions": "Ενέργειες",
+    "drawMode": "Σχεδίαση στον χάρτη",
+    "pasteMode": "Επικόλληση συντεταγμένων",
+    "addVertex": "Προσθήκη κορυφής",
+    "addCurrentLocation": "Προσθήκη τρέχουσας θέσης",
+    "pasteCoordinates": "Επικόλληση συντεταγμένων από ΚΤΗΜΑΤΟΛΟΓΙΟ",
+    "importCoordinates": "Εισαγωγή",
+    "clearPolygon": "Καθαρισμός πολυγώνου",
+    "reportTable": "Εκτύπωση πίνακα",
+    "reportFull": "Πλήρης εκτύπωση"
+  },
+  "crops": {
+    "title": "Καλλιέργειες",
+    "currentYear": "Τρέχον έτος",
+    "history": "Ιστορικό καλλιεργειών",
+    "year": "Έτος",
+    "crop": "Καλλιέργεια",
+    "setCrop": "Καταχώρηση καλλιέργειας",
+    "WHEAT": "Σιτάρι",
+    "BARLEY": "Κριθάρι",
+    "COTTON": "Βαμβάκι",
+    "VETCH": "Βίκος",
+    "CLOVER": "Τριφύλλι",
+    "noCrop": "Χωρίς καλλιέργεια"
+  },
+  "users": {
+    "title": "Διαχείριση Χρηστών",
+    "addUser": "Προσθήκη χρήστη",
+    "editUser": "Επεξεργασία χρήστη",
+    "name": "Όνομα",
+    "email": "Email",
+    "role": "Ρόλος",
+    "password": "Κωδικός",
+    "SUPER_ADMIN": "Διαχειριστής",
+    "LAND_OWNER": "Ιδιοκτήτης",
+    "LEASEHOLDER": "Ενοικιαστής"
+  },
+  "map": {
+    "title": "Χάρτης αγροτεμαχίων",
+    "satellite": "Δορυφορική εικόνα",
+    "street": "Χάρτης δρόμων",
+    "allFields": "Όλα τα αγροτεμάχια"
+  }
+}
