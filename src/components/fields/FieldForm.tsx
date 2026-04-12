@@ -99,6 +99,26 @@ export default function FieldForm({ leaseholders, initial }: FieldFormProps) {
     });
   }
 
+  const handleVertexMove = useCallback(
+    (index: number, latlng: LatLng) => {
+      setVertices((prev) => {
+        const next = [...prev];
+        next[index] = latlng;
+        updateCalcArea(next);
+        return next;
+      });
+    },
+    [updateCalcArea]
+  );
+
+  const handleVertexDelete = useCallback((index: number) => {
+    setVertices((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      updateCalcArea(next);
+      return next;
+    });
+  }, [updateCalcArea]);
+
   function handleImportCoordinates() {
     setPasteError("");
     try {
@@ -236,7 +256,7 @@ export default function FieldForm({ leaseholders, initial }: FieldFormProps) {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-500">
-                Κάντε κλικ στον χάρτη για να προσθέσετε κορυφές πολυγώνου.
+                Κλικ → προσθήκη κορυφής · Σύρσιμο → μετακίνηση · Δεξί κλικ → διαγραφή
               </p>
               <button
                 type="button"
@@ -253,8 +273,10 @@ export default function FieldForm({ leaseholders, initial }: FieldFormProps) {
                   ? [{ id: "draft", name, vertices }]
                   : []
               }
-              drawingVertices={vertices.length >= 2 ? vertices : []}
+              drawingVertices={vertices}
               onMapClick={handleMapClick}
+              onVertexMove={handleVertexMove}
+              onVertexDelete={handleVertexDelete}
               onGpsLocation={handleGpsLocation}
               showLayerToggle
               showGpsButton
@@ -393,8 +415,10 @@ export default function FieldForm({ leaseholders, initial }: FieldFormProps) {
                 ? [{ id: "draft", name, vertices }]
                 : []
             }
-            drawingVertices={vertices.length >= 2 ? vertices : []}
+            drawingVertices={vertices}
             onMapClick={handleMapClick}
+            onVertexMove={handleVertexMove}
+            onVertexDelete={handleVertexDelete}
             onGpsLocation={handleGpsLocation}
             showLayerToggle
             showGpsButton

@@ -36,6 +36,10 @@ export interface MapComponentProps {
   onPolygonClick?: (fieldId: string) => void;
   onMapClick?: (latlng: LatLng) => void;
   drawingVertices?: LatLng[];
+  /** Called when a vertex marker is dragged to a new position */
+  onVertexMove?: (index: number, latlng: LatLng) => void;
+  /** Called when a vertex marker is right-clicked (desktop) or long-pressed (mobile) */
+  onVertexDelete?: (index: number) => void;
   showSatellite?: boolean;
   className?: string;
 }
