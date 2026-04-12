@@ -32,6 +32,12 @@ export default async function AppShell({
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {children}
       </main>
+      <footer className="border-t border-gray-200 bg-white mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row items-center justify-between gap-1 text-xs text-gray-400">
+          <span>© 2026 Theodore Chaikalis</span>
+          <span>v{process.env.NEXT_PUBLIC_APP_VERSION ?? "0.2.0"}</span>
+        </div>
+      </footer>
     </div>
   );
 }
