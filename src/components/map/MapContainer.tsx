@@ -62,6 +62,7 @@ export default function MapContainer({
       {/* Layer toggle */}
       {showLayerToggle && (
         <button
+          type="button"
           onClick={() => setSatellite((s) => !s)}
           className="absolute top-3 right-3 z-[1000] bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-xs font-medium shadow hover:bg-gray-50 transition-colors"
         >
@@ -72,6 +73,7 @@ export default function MapContainer({
       {/* GPS button */}
       {showGpsButton && (
         <button
+          type="button"
           onClick={handleGps}
           disabled={gpsLoading}
           title={t("fields.addCurrentLocation")}
