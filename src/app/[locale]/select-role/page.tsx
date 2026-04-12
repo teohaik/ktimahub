@@ -16,15 +16,10 @@ export default async function SelectRolePage({
     redirect(`/${locale}/login`);
   }
 
-  const { roles, activeRole } = session.user;
+  const { roles } = session.user;
 
-  // Single-role users should never land here
+  // Single-role users have nothing to choose from
   if (roles.length <= 1) {
-    redirect(`/${locale}`);
-  }
-
-  // Already selected — go straight to the right view
-  if (activeRole) {
     redirect(`/${locale}`);
   }
 

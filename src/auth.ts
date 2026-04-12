@@ -59,10 +59,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
       }
 
-      // On session update (role selection): validate and store chosen role
-      if (trigger === "update" && session?.activeRole) {
-        const requested = session.activeRole as Role;
-        if ((token.roles as Role[]).includes(requested)) {
+      // On session update: set or clear activeRole
+      if (trigger === "update" && "activeRole" in (session ?? {})) {
+        const requested = session.activeRole as Role | null;
+        if (requested === null) {
+          token.activeRole = null;
+        } else if ((token.roles as Role[]).includes(requested)) {
           token.activeRole = requested;
         }
       }

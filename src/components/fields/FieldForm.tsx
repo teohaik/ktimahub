@@ -52,6 +52,9 @@ export default function FieldForm({ leaseholders, initial }: FieldFormProps) {
   const [pasteText, setPasteText] = useState("");
   const [pasteError, setPasteError] = useState("");
 
+  // Map fullscreen
+  const [mapFullscreen, setMapFullscreen] = useState(false);
+
   // Saving state
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -145,6 +148,7 @@ export default function FieldForm({ leaseholders, initial }: FieldFormProps) {
   }
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Basic info */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
@@ -230,9 +234,19 @@ export default function FieldForm({ leaseholders, initial }: FieldFormProps) {
 
         {mode === "draw" && (
           <div className="space-y-3">
-            <p className="text-sm text-gray-500">
-              Κάντε κλικ στον χάρτη για να προσθέσετε κορυφές πολυγώνου.
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-500">
+                Κάντε κλικ στον χάρτη για να προσθέσετε κορυφές πολυγώνου.
+              </p>
+              <button
+                type="button"
+                onClick={() => setMapFullscreen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors shrink-0"
+              >
+                <ExpandIcon />
+                {t("fields.fullscreen")}
+              </button>
+            </div>
             <MapContainer
               polygons={
                 vertices.length >= 3
@@ -352,6 +366,44 @@ export default function FieldForm({ leaseholders, initial }: FieldFormProps) {
         </button>
       </div>
     </form>
+
+    {/* Fullscreen map overlay */}
+    {mapFullscreen && (
+      <div className="fixed inset-0 z-[2000] flex flex-col bg-white">
+        {/* Header bar */}
+        <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200 shrink-0">
+          <span className="text-sm font-medium text-gray-700">
+            {vertices.length > 0
+              ? `${vertices.length} κορυφές`
+              : "Κάντε κλικ στον χάρτη για να προσθέσετε κορυφές"}
+          </span>
+          <button
+            type="button"
+            onClick={() => setMapFullscreen(false)}
+            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            {t("fields.doneDrawing")}
+          </button>
+        </div>
+        {/* Full-height map */}
+        <div className="flex-1 min-h-0">
+          <MapContainer
+            polygons={
+              vertices.length >= 3
+                ? [{ id: "draft", name, vertices }]
+                : []
+            }
+            drawingVertices={vertices.length >= 2 ? vertices : []}
+            onMapClick={handleMapClick}
+            onGpsLocation={handleGpsLocation}
+            showLayerToggle
+            showGpsButton
+            height="100%"
+          />
+        </div>
+      </div>
+    )}
+    </>
   );
 }
 
@@ -375,6 +427,17 @@ function FormField({
       </label>
       {children}
     </div>
+  );
+}
+
+function ExpandIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 3 21 3 21 9" />
+      <polyline points="9 21 3 21 3 15" />
+      <line x1="21" y1="3" x2="14" y2="10" />
+      <line x1="3" y1="21" x2="10" y2="14" />
+    </svg>
   );
 }
 

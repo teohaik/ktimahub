@@ -24,7 +24,8 @@
     "password": "Password",
     "loginWithGoogle": "Sign in with Google",
     "loginWithCredentials": "Sign in with email",
-    "invalidCredentials": "Invalid credentials"
+    "invalidCredentials": "Invalid credentials",
+    "switchRole": "Switch role"
   },
   "nav": {
     "fields": "Fields",
@@ -52,7 +53,9 @@
     "importCoordinates": "Import",
     "clearPolygon": "Clear polygon",
     "reportTable": "Print table",
-    "reportFull": "Full report"
+    "reportFull": "Full report",
+    "fullscreen": "Full screen",
+    "doneDrawing": "Done"
   },
   "crops": {
     "title": "Crops",

@@ -24,7 +24,8 @@
     "password": "Κωδικός",
     "loginWithGoogle": "Σύνδεση με Google",
     "loginWithCredentials": "Σύνδεση με email",
-    "invalidCredentials": "Λανθασμένα στοιχεία σύνδεσης"
+    "invalidCredentials": "Λανθασμένα στοιχεία σύνδεσης",
+    "switchRole": "Αλλαγή ρόλου"
   },
   "nav": {
     "fields": "Αγροτεμάχια",
@@ -52,7 +53,9 @@
     "importCoordinates": "Εισαγωγή",
     "clearPolygon": "Καθαρισμός πολυγώνου",
     "reportTable": "Εκτύπωση πίνακα",
-    "reportFull": "Πλήρης εκτύπωση"
+    "reportFull": "Πλήρης εκτύπωση",
+    "fullscreen": "Πλήρης οθόνη",
+    "doneDrawing": "Τέλος"
   },
   "crops": {
     "title": "Καλλιέργειες",

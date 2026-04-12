@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations, useLocale } from "next-intl";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
@@ -16,6 +16,15 @@ export default function Navbar({ role, userName }: NavbarProps) {
   const t = useTranslations();
   const locale = useLocale();
   const pathname = usePathname();
+  const { data: session, update } = useSession();
+
+  const roles = (session?.user?.roles ?? []) as Role[];
+  const hasMultipleRoles = roles.length > 1;
+
+  async function handleSwitchRole() {
+    await update({ activeRole: null });
+    window.location.href = `/${locale}/select-role`;
+  }
 
   const navLinks: Record<Role, { href: string; label: string }[]> = {
     SUPER_ADMIN: [{ href: `/${locale}/users`, label: t("nav.users") }],
@@ -69,6 +78,16 @@ export default function Navbar({ role, userName }: NavbarProps) {
               <span className="hidden sm:block text-sm text-gray-500 truncate max-w-[120px]">
                 {userName}
               </span>
+            )}
+            {hasMultipleRoles && (
+              <button
+                onClick={handleSwitchRole}
+                className="text-sm font-medium text-gray-600 hover:text-green-700 transition-colors"
+                title={t("auth.switchRole")}
+              >
+                <span className="hidden sm:inline">{t("auth.switchRole")}</span>
+                <span className="sm:hidden">⇄</span>
+              </button>
             )}
             <button
               onClick={() => signOut({ callbackUrl: `/${locale}/login` })}
