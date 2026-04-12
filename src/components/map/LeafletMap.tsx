@@ -39,6 +39,13 @@ export default function LeafletMap({
   const polygonLayersRef = useRef<Map<string, Polygon>>(new Map());
   const drawingLayerRef = useRef<Polygon | null>(null);
 
+  // Keep a stable ref to the latest onMapClick so the handler registered
+  // during async map init always calls the current callback.
+  const onMapClickRef = useRef(onMapClick);
+  useEffect(() => {
+    onMapClickRef.current = onMapClick;
+  }, [onMapClick]);
+
   // --- Init map once ---
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -68,6 +75,13 @@ export default function LeafletMap({
       ).addTo(map);
 
       tileLayerRef.current = layer;
+
+      // Register click handler here, after map is ready.
+      // Uses ref so it always calls the latest callback without re-registering.
+      map.on("click", (e) => {
+        onMapClickRef.current?.({ lat: e.latlng.lat, lng: e.latlng.lng });
+      });
+
       mapRef.current = map;
     });
 
@@ -94,22 +108,6 @@ export default function LeafletMap({
       }).addTo(mapRef.current);
     });
   }, [showSatellite]);
-
-  // --- Sync map click handler ---
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    if (!onMapClick) return;
-
-    const handler = (e: { latlng: { lat: number; lng: number } }) => {
-      onMapClick({ lat: e.latlng.lat, lng: e.latlng.lng });
-    };
-
-    map.on("click", handler);
-    return () => {
-      map.off("click", handler);
-    };
-  }, [onMapClick]);
 
   // --- Render field polygons ---
   useEffect(() => {
