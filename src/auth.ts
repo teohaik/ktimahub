@@ -41,17 +41,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user, trigger, session }) {
-      // On sign-in: load roles from DB
-      if (user) {
+      // On sign-in OR when the token pre-dates the roles field (stale JWT):
+      // load roles from DB
+      if (user || !token.roles) {
+        const id = (user?.id ?? token.id) as string;
         const dbUser = await db.user.findUnique({
-          where: { id: user.id },
+          where: { id },
           select: { roles: true },
         });
         const roles = (dbUser?.roles ?? ["LEASEHOLDER"]) as Role[];
-        token.id = user.id!;
+        if (user) token.id = user.id!;
         token.roles = roles;
-        // Auto-select if only one role; otherwise require explicit selection
-        token.activeRole = roles.length === 1 ? roles[0] : null;
+        // Preserve an already-selected activeRole on re-hydration;
+        // auto-select only on fresh sign-in or if the token had none.
+        if (!token.activeRole) {
+          token.activeRole = roles.length === 1 ? roles[0] : null;
+        }
       }
 
       // On session update (role selection): validate and store chosen role

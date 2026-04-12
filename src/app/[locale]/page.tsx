@@ -14,7 +14,8 @@ export default async function HomePage({
     redirect(`/${locale}/login`);
   }
 
-  const { roles, activeRole } = session.user;
+  const roles = session.user.roles ?? [];
+  const activeRole = session.user.activeRole ?? null;
 
   // If the user has multiple roles and hasn't picked one yet, ask them
   if (!activeRole && roles.length > 1) {
