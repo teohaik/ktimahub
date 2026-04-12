@@ -23,7 +23,7 @@ export default function MapContainer({
   ...mapProps
 }: MapContainerProps) {
   const t = useTranslations();
-  const [satellite, setSatellite] = useState(false);
+  const [satellite, setSatellite] = useState(true);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsError, setGpsError] = useState("");
 

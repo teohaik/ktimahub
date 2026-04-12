@@ -247,7 +247,7 @@ export default function LeafletMap({
         p.vertices.map((v) => [v.lat, v.lng] as [number, number])
       );
       if (allPoints.length > 0) {
-        map.fitBounds(L.latLngBounds(allPoints), { padding: [40, 40] });
+        map.fitBounds(L.latLngBounds(allPoints), { padding: [20, 20], maxZoom: 17 });
       }
     });
   }, [polygons]);
