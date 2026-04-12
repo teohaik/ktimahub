@@ -1,8 +1,22 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { renderToBuffer } from "@react-pdf/renderer";
+import { renderToBuffer, Font } from "@react-pdf/renderer";
 import { FieldsTablePdf } from "@/lib/pdf/FieldsTablePdf";
+import path from "path";
+
+// Register a Unicode font that covers Greek before any PDF is rendered.
+// Font.register is idempotent — safe to call on every cold start.
+Font.register({
+  family: "NotoSans",
+  fonts: [
+    { src: path.join(process.cwd(), "public", "fonts", "NotoSans-Regular.ttf") },
+    {
+      src: path.join(process.cwd(), "public", "fonts", "NotoSans-Bold.ttf"),
+      fontWeight: "bold",
+    },
+  ],
+});
 
 export async function GET() {
   const session = await auth();
@@ -16,7 +30,6 @@ export async function GET() {
   });
 
   const buffer = await renderToBuffer(FieldsTablePdf({ fields }));
-  // Cast Buffer → Uint8Array so NextResponse accepts it
   const body = new Uint8Array(buffer);
 
   return new NextResponse(body, {

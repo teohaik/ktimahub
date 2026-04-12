@@ -30,7 +30,25 @@ export default function FullReportButton({ fields }: Props) {
       ]);
       const L = await import("leaflet");
 
+      // Load Noto Sans (supports Greek) and register with jsPDF
+      async function loadFont(url: string): Promise<string> {
+        const res = await fetch(url);
+        const buf = await res.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        return btoa(binary);
+      }
+      const [regularB64, boldB64] = await Promise.all([
+        loadFont("/fonts/NotoSans-Regular.ttf"),
+        loadFont("/fonts/NotoSans-Bold.ttf"),
+      ]);
       const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      doc.addFileToVFS("NotoSans-Regular.ttf", regularB64);
+      doc.addFont("NotoSans-Regular.ttf", "NotoSans", "normal");
+      doc.addFileToVFS("NotoSans-Bold.ttf", boldB64);
+      doc.addFont("NotoSans-Bold.ttf", "NotoSans", "bold");
+
       const pageW = doc.internal.pageSize.getWidth();
       const pageH = doc.internal.pageSize.getHeight();
       const margin = 14;
@@ -50,7 +68,7 @@ export default function FullReportButton({ fields }: Props) {
         doc.rect(margin, y, pageW - margin * 2, 8, "F");
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(7);
-        doc.setFont("helvetica", "bold");
+        doc.setFont("NotoSans", "bold");
         let x = margin;
         headers.forEach((h, i) => {
           doc.text(h, x + 1, y + 5.5);
@@ -66,7 +84,7 @@ export default function FullReportButton({ fields }: Props) {
         }
         doc.setTextColor(17, 24, 39);
         doc.setFontSize(7.5);
-        doc.setFont("helvetica", "normal");
+        doc.setFont("NotoSans", "normal");
         const cells = [
           String(seq), f.kaek, f.name,
           fmt(f.officialArea), fmt(f.calculatedArea),
@@ -87,7 +105,7 @@ export default function FullReportButton({ fields }: Props) {
         pageNum++;
         doc.setFontSize(7);
         doc.setTextColor(156, 163, 175);
-        doc.setFont("helvetica", "normal");
+        doc.setFont("NotoSans", "normal");
         doc.text(
           `${new Date().toLocaleDateString("el-GR")}`,
           margin,
@@ -102,7 +120,7 @@ export default function FullReportButton({ fields }: Props) {
 
       // -- Page 1+: Table --
       doc.setFontSize(13);
-      doc.setFont("helvetica", "bold");
+      doc.setFont("NotoSans", "bold");
       doc.setTextColor(17, 24, 39);
       doc.text("Κατάσταση Αγροτεμαχίων", margin, 20);
 
@@ -152,11 +170,11 @@ export default function FullReportButton({ fields }: Props) {
         doc.addPage();
         addPageNumber();
         doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
+        doc.setFont("NotoSans", "bold");
         doc.setTextColor(17, 24, 39);
         doc.text(field.name, margin, 16);
         doc.setFontSize(8);
-        doc.setFont("helvetica", "normal");
+        doc.setFont("NotoSans", "normal");
         doc.setTextColor(107, 114, 128);
         doc.text(`ΚΑΕΚ: ${field.kaek}`, margin, 22);
         doc.text(

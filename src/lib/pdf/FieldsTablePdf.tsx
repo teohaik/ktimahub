@@ -30,8 +30,8 @@ const COLS = [
 ];
 
 const s = StyleSheet.create({
-  page: { padding: 32, fontSize: 9, fontFamily: "Helvetica" },
-  title: { fontSize: 14, fontFamily: "Helvetica-Bold", marginBottom: 16 },
+  page: { padding: 32, fontSize: 9, fontFamily: "NotoSans" },
+  title: { fontSize: 14, fontFamily: "NotoSans", fontWeight: "bold", marginBottom: 16 },
   table: { width: "100%" },
   headerRow: {
     flexDirection: "row",
@@ -41,7 +41,8 @@ const s = StyleSheet.create({
   },
   headerCell: {
     color: "#fff",
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "NotoSans",
+    fontWeight: "bold",
     fontSize: 8,
   },
   row: {
@@ -52,7 +53,7 @@ const s = StyleSheet.create({
     borderBottomColor: "#e5e7eb",
   },
   rowAlt: { backgroundColor: "#f9fafb" },
-  cell: { color: "#111827", fontSize: 8.5 },
+  cell: { fontFamily: "NotoSans", color: "#111827", fontSize: 8.5 },
   footer: {
     position: "absolute",
     bottom: 20,
@@ -62,6 +63,7 @@ const s = StyleSheet.create({
     justifyContent: "space-between",
     fontSize: 8,
     color: "#9ca3af",
+    fontFamily: "NotoSans",
   },
 });
 
