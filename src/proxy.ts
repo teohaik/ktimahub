@@ -32,12 +32,17 @@ export default auth(function middleware(
   const { pathname } = req.nextUrl;
   const basePath = stripLocale(pathname);
 
+  // API routes and Next.js internals must pass through untouched
   if (
-    isPublicPath(basePath) ||
+    pathname.startsWith("/api/") ||
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon") ||
-    pathname.startsWith("/api/")
+    pathname.startsWith("/favicon")
   ) {
+    return;
+  }
+
+  // Public locale-aware paths (e.g. /login, /el/login) pass through intl only
+  if (isPublicPath(basePath)) {
     return intlMiddleware(req);
   }
 
