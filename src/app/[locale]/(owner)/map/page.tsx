@@ -16,6 +16,7 @@ export default async function MapPage({
     select: {
       id: true,
       name: true,
+      fieldNumber: true,
       polygon: true,
     },
   });
@@ -25,6 +26,7 @@ export default async function MapPage({
     .map((f) => ({
       id: f.id,
       name: f.name,
+      fieldNumber: f.fieldNumber ?? null,
       vertices: f.polygon as { lat: number; lng: number }[],
     }));
 

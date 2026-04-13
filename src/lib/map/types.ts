@@ -6,6 +6,7 @@ export interface LatLng {
 export interface FieldPolygon {
   id: string;
   name: string;
+  fieldNumber?: string | null;
   vertices: LatLng[];
   color?: string;
 }

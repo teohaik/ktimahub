@@ -153,7 +153,8 @@ export default function LeafletMap({
             poly.getElement()?.classList.add("cursor-pointer");
           }
 
-          poly.bindTooltip(fp.name, { sticky: true });
+          const label = fp.fieldNumber ? `${fp.name} - ${fp.fieldNumber}` : fp.name;
+          poly.bindTooltip(label, { sticky: true });
           polygonLayersRef.current.set(fp.id, poly);
         }
       }

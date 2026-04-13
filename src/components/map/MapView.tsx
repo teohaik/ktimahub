@@ -49,7 +49,9 @@ export default function MapView({ polygons }: MapViewProps) {
       {selected && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 text-sm text-blue-800 flex items-center justify-between">
           <div>
-            <span className="font-medium">{selected.name}</span>
+            <span className="font-medium">
+              {selected.name}{selected.fieldNumber ? ` - ${selected.fieldNumber}` : ""}
+            </span>
             <span className="ml-3 text-blue-600 text-xs">
               {selected.vertices.length} κορυφές
             </span>
