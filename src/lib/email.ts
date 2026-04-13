@@ -58,9 +58,11 @@ export async function sendInviteEmail({
       <p>${locale === "el" ? "Διαχείριση Αγροτεμαχίων" : "Smart agricultural land management"}</p>
     </div>
     <div class="body">
-      <p style="margin-top:0">${locale === "el" ? "Λάβατε πρόσκληση για το KtimaHub." : "You have been invited to KtimaHub."}</p>
-      <span class="role-badge">${roleLabel}</span>
-      <p>${locale === "el" ? "Κάντε κλικ στο παρακάτω κουμπί για να δημιουργήσετε τον λογαριασμό σας:" : "Click the button below to set up your account:"}</p>
+      <p style="margin-top:0">${locale === "el"
+        ? `Καλώς ήλθατε στο KtimaHub! Αυτή είναι μια πρόσκληση για να δημιουργήσετε τον λογαριασμό σας ως <strong>${roleLabel}</strong>.`
+        : `Welcome to KtimaHub! You have been invited to create your account as <strong>${roleLabel}</strong>.`
+      }</p>
+      <p>${locale === "el" ? "Πατήστε το παρακάτω κουμπί για να συνεχίσετε:" : "Click the button below to continue:"}</p>
       <a href="${link}" class="cta">${locale === "el" ? "Αποδοχή Πρόσκλησης" : "Accept Invitation"}</a>
       <p class="link-fallback">${locale === "el" ? "Ή αντιγράψτε τον σύνδεσμο:" : "Or copy this link:"}<br/>${link}</p>
     </div>
