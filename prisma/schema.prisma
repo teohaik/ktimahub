@@ -101,3 +101,13 @@ model CropHistory {
 
   @@unique([fieldId, year])
 }
+
+model Invite {
+  id        String    @id @default(cuid())
+  email     String
+  roles     Role[]
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}

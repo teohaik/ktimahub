@@ -96,5 +96,26 @@
     "satellite": "Satellite",
     "street": "Street map",
     "allFields": "All fields"
+  },
+  "invite": {
+    "sendInvite": "Invite user",
+    "inviteUser": "Invite user",
+    "sent": "Invitation sent!",
+    "sentDesc": "An invitation email has been sent to {email}.",
+    "title": "You've been invited",
+    "chooseMethod": "Choose how you want to set up your account.",
+    "continueWithGoogle": "Continue with Google",
+    "setPassword": "Set up with email & password",
+    "or": "or",
+    "back": "Back",
+    "yourName": "Your name",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "createAccount": "Create account",
+    "passwordMismatch": "Passwords do not match",
+    "signInFailed": "Account created but sign-in failed — please log in manually.",
+    "invalidToken": "This invitation link is invalid or has expired.",
+    "alreadyUsed": "This invitation has already been used.",
+    "contactAdmin": "Please contact your administrator for a new invitation."
   }
 }
