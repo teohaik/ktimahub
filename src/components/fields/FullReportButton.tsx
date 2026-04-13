@@ -140,9 +140,12 @@ export default function FullReportButton({ fields }: Props) {
       addPageNumber();
 
       // -- Per-field map pages --
+      // Position at 0,0 (behind everything) so html2canvas captures CSS transforms
+      // correctly. Placing it off-screen horizontally (left:-9999px) caused the tile
+      // layer and polygon SVG overlay to be captured with a positional offset.
       const mapContainer = document.createElement("div");
       mapContainer.style.cssText =
-        "width:700px;height:400px;position:fixed;left:-9999px;top:0;z-index:-1;";
+        "width:700px;height:400px;position:fixed;left:0;top:0;z-index:-9999;pointer-events:none;";
       document.body.appendChild(mapContainer);
 
       for (const field of fields) {
@@ -160,10 +163,19 @@ export default function FullReportButton({ fields }: Props) {
         }).addTo(mapInstance);
         mapInstance.fitBounds(poly.getBounds(), { padding: [30, 30] });
 
-        // Wait for tiles
-        await new Promise((r) => setTimeout(r, 1200));
+        // Wait for tiles to load
+        await new Promise((r) => setTimeout(r, 1500));
 
-        const canvas = await html2canvas(mapContainer, { useCORS: true, logging: false });
+        // Force Leaflet to recalculate its pane transforms before capture
+        mapInstance.invalidateSize({ animate: false });
+        await new Promise((r) => setTimeout(r, 100));
+
+        const canvas = await html2canvas(mapContainer, {
+          useCORS: true,
+          logging: false,
+          scrollX: 0,
+          scrollY: 0,
+        });
         const imgData = canvas.toDataURL("image/jpeg", 0.85);
 
         mapInstance.remove();
