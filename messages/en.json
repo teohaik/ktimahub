@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Field Manager",
+    "appName": "KtimaHub",
     "loading": "Loading...",
     "save": "Save",
     "cancel": "Cancel",
@@ -96,6 +96,24 @@
     "satellite": "Satellite",
     "street": "Street map",
     "allFields": "All fields"
+  },
+  "landing": {
+    "tagline": "Smart agricultural land management",
+    "subtitle": "Track your fields, record crop history and manage leaseholders — all in one place.",
+    "cta": "Sign in",
+    "learnMore": "Learn more",
+    "featuresTitle": "Everything you need",
+    "featuresSubtitle": "Designed for Greek landowners who manage fields across multiple municipalities.",
+    "f1Title": "Satellite field mapping",
+    "f1Desc": "Draw field boundaries directly on satellite imagery or paste EGSA87 coordinates from the land registry. Areas are calculated automatically.",
+    "f2Title": "Crop history",
+    "f2Desc": "Record the crop planted on each field year by year. Full history at a glance, always up to date.",
+    "f3Title": "Leaseholder management",
+    "f3Desc": "Assign leaseholders to fields, invite them by email, and let them declare their own crop for the year.",
+    "f4Title": "PDF reports",
+    "f4Desc": "Generate a full fields report with satellite map snapshots — ready to print or share.",
+    "trustedBy": "Built for Greek agriculture",
+    "heroLabel": "Agricultural management platform"
   },
   "invite": {
     "sendInvite": "Invite user",

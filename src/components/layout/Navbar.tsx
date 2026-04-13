@@ -71,9 +71,10 @@ export default function Navbar({ role, userName }: NavbarProps) {
           {/* Logo */}
           <Link
             href={`/${locale}`}
-            className="font-semibold text-green-700 text-base tracking-tight shrink-0"
+            className="font-bold text-gray-900 text-base tracking-tight shrink-0 flex items-center gap-2"
           >
-            🌾 {t("common.appName")}
+            <span className="text-xl">🌾</span>
+            <span>Ktima<span className="text-green-600">Hub</span></span>
           </Link>
 
           {/* Nav links */}

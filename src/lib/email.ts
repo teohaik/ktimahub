@@ -2,7 +2,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM = process.env.EMAIL_FROM ?? "Field Manager <noreply@myfields.vercel.app>";
+const FROM = process.env.EMAIL_FROM ?? "KtimaHub <noreply@myfields.vercel.app>";
 const APP_URL = process.env.NEXTAUTH_URL ?? "https://myfields.vercel.app";
 
 export async function sendInviteEmail({
@@ -29,8 +29,8 @@ export async function sendInviteEmail({
 
   const subject =
     locale === "el"
-      ? "Πρόσκληση στο Field Manager"
-      : "You've been invited to Field Manager";
+      ? "Πρόσκληση στο KtimaHub"
+      : "You've been invited to KtimaHub";
 
   const html = `
 <!DOCTYPE html>
@@ -54,11 +54,11 @@ export async function sendInviteEmail({
 <body>
   <div class="card">
     <div class="header">
-      <h1>🌾 Field Manager</h1>
-      <p>${locale === "el" ? "Διαχείριση Αγροτεμαχίων" : "Agricultural Field Management"}</p>
+      <h1>🌾 KtimaHub</h1>
+      <p>${locale === "el" ? "Διαχείριση Αγροτεμαχίων" : "Smart agricultural land management"}</p>
     </div>
     <div class="body">
-      <p style="margin-top:0">${locale === "el" ? "Λάβατε πρόσκληση για το Field Manager." : "You have been invited to Field Manager."}</p>
+      <p style="margin-top:0">${locale === "el" ? "Λάβατε πρόσκληση για το KtimaHub." : "You have been invited to KtimaHub."}</p>
       <span class="role-badge">${roleLabel}</span>
       <p>${locale === "el" ? "Κάντε κλικ στο παρακάτω κουμπί για να δημιουργήσετε τον λογαριασμό σας:" : "Click the button below to set up your account:"}</p>
       <a href="${link}" class="cta">${locale === "el" ? "Αποδοχή Πρόσκλησης" : "Accept Invitation"}</a>

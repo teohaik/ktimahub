@@ -7,8 +7,8 @@ import { SessionProvider } from "next-auth/react";
 import "../globals.css";
 
 export const metadata: Metadata = {
-  title: "Field Manager",
-  description: "Agricultural field management system",
+  title: "KtimaHub",
+  description: "Smart agricultural land management — track fields, crop history and leaseholders",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
 

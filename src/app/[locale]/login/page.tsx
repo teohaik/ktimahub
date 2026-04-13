@@ -31,7 +31,9 @@ export default async function LoginPage({
           {/* Logo & title */}
           <div className="text-center mb-8">
             <div className="text-5xl mb-3">🌾</div>
-            <h1 className="text-2xl font-bold text-gray-900">{t("appName")}</h1>
+            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+              Ktima<span className="text-green-600">Hub</span>
+            </h1>
           </div>
 
           <LoginForm locale={locale} />
