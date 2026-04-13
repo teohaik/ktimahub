@@ -6,7 +6,8 @@ type Props = { params: Promise<{ locale: string; token: string }> };
 
 /**
  * Landing page after Google OAuth on the invite flow.
- * The user is now signed in — we assign the invited roles and mark the invite used.
+ * The PrismaAdapter already linked the Google account to the pre-created
+ * INVITED user (matched by email). We just set status = ACTIVE here.
  */
 export default async function InviteFinalizePage({ params }: Props) {
   const { locale, token } = await params;
@@ -18,37 +19,33 @@ export default async function InviteFinalizePage({ params }: Props) {
 
   const invite = await db.invite.findUnique({ where: { token } });
 
-  // Validate invite
   if (!invite || invite.usedAt || invite.expiresAt < new Date()) {
-    redirect(`/${locale}/invite/${token}`); // will show invalid state
+    redirect(`/${locale}/invite/${token}`);
   }
 
-  // Emails must match
   if (invite.email.toLowerCase() !== session.user.email.toLowerCase()) {
     redirect(`/${locale}/invite/${token}`);
   }
 
-  // Merge roles into user and mark invite used
-  const existing = await db.user.findUnique({
+  // Fetch current user to check if name needs to be set from Google profile
+  const dbUser = await db.user.findUnique({
     where: { id: session.user.id },
-    select: { roles: true },
+    select: { name: true },
   });
 
-  if (existing) {
-    const merged = Array.from(
-      new Set([...existing.roles, ...(invite.roles as string[])])
-    );
-    await db.user.update({
-      where: { id: session.user.id },
-      data: { roles: merged as never },
-    });
-  }
+  await db.user.update({
+    where: { id: session.user.id },
+    data: {
+      status: "ACTIVE",
+      // Populate name from Google profile if not yet set
+      ...(session.user.name && !dbUser?.name ? { name: session.user.name } : {}),
+    },
+  });
 
   await db.invite.update({
     where: { token },
     data: { usedAt: new Date() },
   });
 
-  // Force JWT refresh on next request by redirecting through sign-in flow
   redirect(`/${locale}`);
 }

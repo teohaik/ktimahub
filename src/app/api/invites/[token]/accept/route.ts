@@ -24,36 +24,25 @@ export async function POST(req: Request, { params }: Params) {
     );
   }
 
+  if (!invite.userId) {
+    return NextResponse.json(
+      { error: "Invalid invitation" },
+      { status: 410 }
+    );
+  }
+
   const hashed = await bcrypt.hash(password, 12);
 
-  // Upsert: if a user with this email already exists (e.g. created via Google
-  // before accepting the invite), merge roles; otherwise create fresh.
-  const existing = await db.user.findUnique({ where: { email: invite.email } });
-
-  let user;
-  if (existing) {
-    const merged = Array.from(new Set([...existing.roles, ...invite.roles]));
-    user = await db.user.update({
-      where: { id: existing.id },
-      data: { name, password: hashed, roles: merged },
-      select: { id: true, email: true, name: true, roles: true },
-    });
-  } else {
-    user = await db.user.create({
-      data: {
-        name,
-        email: invite.email,
-        password: hashed,
-        roles: invite.roles,
-      },
-      select: { id: true, email: true, name: true, roles: true },
-    });
-  }
+  const user = await db.user.update({
+    where: { id: invite.userId },
+    data: { name, password: hashed, status: "ACTIVE" },
+    select: { id: true, email: true, name: true, roles: true },
+  });
 
   await db.invite.update({
     where: { token },
     data: { usedAt: new Date() },
   });
 
-  return NextResponse.json(user, { status: 201 });
+  return NextResponse.json(user, { status: 200 });
 }

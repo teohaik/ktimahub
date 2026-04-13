@@ -13,6 +13,11 @@ enum Role {
   LEASEHOLDER
 }
 
+enum UserStatus {
+  INVITED
+  ACTIVE
+}
+
 enum CropType {
   WHEAT
   BARLEY
@@ -28,12 +33,14 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
-  roles         Role[]    @default([])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  roles         Role[]      @default([])
+  status        UserStatus  @default(ACTIVE)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   accounts      Account[]
   sessions      Session[]
+  invites       Invite[]
   ownedFields   Field[]   @relation("FieldOwner")
   leasedFields  Field[]   @relation("FieldLeaseholder")
 }
@@ -113,4 +120,7 @@ model Invite {
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime  @default(now())
+  userId    String?
+
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
