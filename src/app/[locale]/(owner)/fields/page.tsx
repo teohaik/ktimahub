@@ -12,10 +12,11 @@ export default async function FieldsPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  await requireRole(locale, "LAND_OWNER");
+  const session = await requireRole(locale, "LAND_OWNER");
   const t = await getTranslations();
 
   const fields = await db.field.findMany({
+    where: { ownerId: session.user.id },
     include: { leaseholder: { select: { id: true, name: true } } },
     orderBy: { name: "asc" },
   });

@@ -11,6 +11,7 @@ export async function GET() {
   }
 
   const fields = await db.field.findMany({
+    where: { ownerId: session.user.id },
     include: { leaseholder: { select: { id: true, name: true } } },
     orderBy: { name: "asc" },
   });
@@ -44,6 +45,7 @@ export async function POST(req: Request) {
       officialArea: parseFloat(officialArea) || 0,
       calculatedArea,
       polygon: polygon ?? undefined,
+      ownerId: session.user.id,
       leaseholderId: leaseholderId || null,
     },
     include: { leaseholder: { select: { id: true, name: true } } },

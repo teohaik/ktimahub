@@ -28,12 +28,13 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
-  roles         Role[]    @default([LEASEHOLDER])
+  roles         Role[]    @default([])
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   accounts      Account[]
   sessions      Session[]
+  ownedFields   Field[]   @relation("FieldOwner")
   leasedFields  Field[]   @relation("FieldLeaseholder")
 }
 
@@ -81,10 +82,12 @@ model Field {
   officialArea     Float    // m² from land registry, manually entered
   calculatedArea   Float?   // m² auto-calculated from polygon
   polygon          Json?    // GeoJSON array of { lat, lng } vertices
+  ownerId          String
   leaseholderId    String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
+  owner        User          @relation("FieldOwner", fields: [ownerId], references: [id])
   leaseholder  User?         @relation("FieldLeaseholder", fields: [leaseholderId], references: [id])
   cropHistory  CropHistory[]
 }

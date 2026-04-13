@@ -25,6 +25,7 @@ export async function GET() {
   }
 
   const fields = await db.field.findMany({
+    where: { ownerId: session.user.id },
     include: { leaseholder: { select: { name: true } } },
     orderBy: { name: "asc" },
   });

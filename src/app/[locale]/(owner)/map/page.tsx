@@ -9,10 +9,11 @@ export default async function MapPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  await requireRole(locale, "LAND_OWNER");
+  const session = await requireRole(locale, "LAND_OWNER");
   const t = await getTranslations("map");
 
   const fields = await db.field.findMany({
+    where: { ownerId: session.user.id },
     select: {
       id: true,
       name: true,

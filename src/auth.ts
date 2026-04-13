@@ -49,7 +49,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: { id },
           select: { roles: true },
         });
-        const roles = (dbUser?.roles ?? ["LEASEHOLDER"]) as Role[];
+        const roles = (dbUser?.roles ?? []) as Role[];
         if (user) token.id = user.id!;
         token.roles = roles;
         // Preserve an already-selected activeRole on re-hydration;

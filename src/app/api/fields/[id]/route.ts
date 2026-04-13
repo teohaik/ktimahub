@@ -14,7 +14,7 @@ export async function GET(_req: Request, { params }: Params) {
 
   const { id } = await params;
   const field = await db.field.findUnique({
-    where: { id },
+    where: { id, ownerId: session.user.id },
     include: {
       leaseholder: { select: { id: true, name: true } },
       cropHistory: { orderBy: { year: "desc" } },
@@ -41,7 +41,7 @@ export async function PUT(req: Request, { params }: Params) {
       : null;
 
   const field = await db.field.update({
-    where: { id },
+    where: { id, ownerId: session.user.id },
     data: {
       name,
       fieldNumber: fieldNumber || null,
@@ -64,6 +64,6 @@ export async function DELETE(_req: Request, { params }: Params) {
   }
 
   const { id } = await params;
-  await db.field.delete({ where: { id } });
+  await db.field.delete({ where: { id, ownerId: session.user.id } });
   return NextResponse.json({ ok: true });
 }

@@ -12,11 +12,11 @@ export default async function EditFieldPage({
   params: Promise<{ locale: string; id: string }>;
 }) {
   const { locale, id } = await params;
-  await requireRole(locale, "LAND_OWNER");
+  const session = await requireRole(locale, "LAND_OWNER");
   const t = await getTranslations();
 
   const [field, leaseholders] = await Promise.all([
-    db.field.findUnique({ where: { id } }),
+    db.field.findUnique({ where: { id, ownerId: session.user.id } }),
     db.user.findMany({
       where: { roles: { has: "LEASEHOLDER" } },
       select: { id: true, name: true },
