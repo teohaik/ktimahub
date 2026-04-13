@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 interface Field {
   id: string;
   name: string;
+  fieldNumber: string | null;
   kaek: string;
   officialArea: number;
   calculatedArea: number | null;
@@ -52,9 +53,9 @@ export default function FullReportButton({ fields }: Props) {
       const pageW = doc.internal.pageSize.getWidth();
       const pageH = doc.internal.pageSize.getHeight();
       const margin = 14;
-      const colW = [10, 40, 45, 35, 35, 45];
+      const colW = [10, 25, 38, 42, 32, 32, 42];
       const headers = [
-        t("fields.fieldId"), t("fields.kaek"), t("fields.name"),
+        t("fields.fieldId"), t("fields.fieldNumber"), t("fields.kaek"), t("fields.name"),
         t("fields.officialArea"), t("fields.calculatedArea"), t("fields.leaseholder"),
       ];
 
@@ -86,7 +87,7 @@ export default function FullReportButton({ fields }: Props) {
         doc.setFontSize(7.5);
         doc.setFont("NotoSans", "normal");
         const cells = [
-          String(seq), f.kaek, f.name,
+          String(seq), f.fieldNumber ?? "—", f.kaek, f.name,
           fmt(f.officialArea), fmt(f.calculatedArea),
           f.leaseholderName ?? "—",
         ];
@@ -176,7 +177,10 @@ export default function FullReportButton({ fields }: Props) {
         doc.setFontSize(8);
         doc.setFont("NotoSans", "normal");
         doc.setTextColor(107, 114, 128);
-        doc.text(`ΚΑΕΚ: ${field.kaek}`, margin, 22);
+        const kaekLine = field.fieldNumber
+          ? `ΚΑΕΚ: ${field.kaek}   Αρ. Τεμαχίου: ${field.fieldNumber}`
+          : `ΚΑΕΚ: ${field.kaek}`;
+        doc.text(kaekLine, margin, 22);
         doc.text(
           `Επίσημο εμβαδόν: ${fmt(field.officialArea)} τ.μ.   Υπολογιζόμενο: ${fmt(field.calculatedArea)} τ.μ.`,
           margin, 27

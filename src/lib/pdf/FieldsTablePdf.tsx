@@ -10,6 +10,7 @@ import {
 interface FieldRow {
   id: string;
   name: string;
+  fieldNumber: string | null;
   kaek: string;
   officialArea: number;
   calculatedArea: number | null;
@@ -21,12 +22,13 @@ interface Props {
 }
 
 const COLS = [
-  { label: "Α/Α", key: "seq", flex: 1 },
-  { label: "ΚΑΕΚ", key: "kaek", flex: 3 },
+  { label: "Α/Α", key: "seq", flex: 0.8 },
+  { label: "Αρ. Τεμαχίου", key: "fieldNumber", flex: 1.5 },
+  { label: "ΚΑΕΚ", key: "kaek", flex: 2.5 },
   { label: "Ονομασία", key: "name", flex: 3 },
-  { label: "Επίσημο εμβαδόν (τ.μ.)", key: "officialArea", flex: 2.5 },
-  { label: "Υπολ. εμβαδόν (τ.μ.)", key: "calculatedArea", flex: 2.5 },
-  { label: "Ενοικιαστής", key: "leaseholder", flex: 3 },
+  { label: "Επίσημο εμβαδόν (τ.μ.)", key: "officialArea", flex: 2.2 },
+  { label: "Υπολ. εμβαδόν (τ.μ.)", key: "calculatedArea", flex: 2.2 },
+  { label: "Ενοικιαστής", key: "leaseholder", flex: 2.8 },
 ];
 
 const s = StyleSheet.create({
@@ -98,15 +100,16 @@ export function FieldsTablePdf({ fields }: Props) {
               wrap={false}
             >
               <Text style={[s.cell, { flex: COLS[0].flex }]}>{i + 1}</Text>
-              <Text style={[s.cell, { flex: COLS[1].flex }]}>{f.kaek}</Text>
-              <Text style={[s.cell, { flex: COLS[2].flex }]}>{f.name}</Text>
-              <Text style={[s.cell, { flex: COLS[3].flex }]}>
+              <Text style={[s.cell, { flex: COLS[1].flex }]}>{f.fieldNumber ?? "—"}</Text>
+              <Text style={[s.cell, { flex: COLS[2].flex }]}>{f.kaek}</Text>
+              <Text style={[s.cell, { flex: COLS[3].flex }]}>{f.name}</Text>
+              <Text style={[s.cell, { flex: COLS[4].flex }]}>
                 {fmt(f.officialArea)}
               </Text>
-              <Text style={[s.cell, { flex: COLS[4].flex }]}>
+              <Text style={[s.cell, { flex: COLS[5].flex }]}>
                 {fmt(f.calculatedArea)}
               </Text>
-              <Text style={[s.cell, { flex: COLS[5].flex }]}>
+              <Text style={[s.cell, { flex: COLS[6].flex }]}>
                 {f.leaseholder?.name ?? "—"}
               </Text>
             </View>

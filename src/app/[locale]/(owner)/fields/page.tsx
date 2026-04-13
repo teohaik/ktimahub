@@ -38,6 +38,7 @@ export default async function FieldsPage({
             fields={fields.map((f) => ({
               id: f.id,
               name: f.name,
+              fieldNumber: f.fieldNumber ?? null,
               kaek: f.kaek,
               officialArea: f.officialArea,
               calculatedArea: f.calculatedArea,
@@ -55,7 +56,7 @@ export default async function FieldsPage({
         </div>
       </div>
 
-      <FieldsTable fields={fields} locale={locale} />
+      <FieldsTable fields={fields.map((f) => ({ ...f, fieldNumber: f.fieldNumber ?? null }))} locale={locale} />
     </div>
   );
 }

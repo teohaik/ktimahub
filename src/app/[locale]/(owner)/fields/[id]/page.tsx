@@ -40,6 +40,7 @@ export default async function EditFieldPage({
         initial={{
           id: field.id,
           name: field.name,
+          fieldNumber: field.fieldNumber ?? null,
           kaek: field.kaek,
           officialArea: field.officialArea,
           calculatedArea: field.calculatedArea,

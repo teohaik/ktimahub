@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 interface Field {
   id: string;
   name: string;
+  fieldNumber: string | null;
   kaek: string;
   officialArea: number;
   calculatedArea: number | null;
@@ -55,7 +56,12 @@ export default function FieldsTable({ fields, locale }: Props) {
             <div className="flex items-start justify-between gap-2">
               <div>
                 <p className="font-semibold text-gray-900">{f.name}</p>
-                <p className="text-xs text-gray-500">{f.kaek}</p>
+                <p className="text-xs text-gray-500">
+                  {f.kaek}
+                  {f.fieldNumber && (
+                    <span className="ml-2 text-gray-400">· {t("fields.fieldNumber")}: {f.fieldNumber}</span>
+                  )}
+                </p>
               </div>
               <span className="text-xs text-gray-400">#{i + 1}</span>
             </div>
@@ -97,6 +103,7 @@ export default function FieldsTable({ fields, locale }: Props) {
           <thead>
             <tr className="bg-green-700 text-white text-left text-xs">
               <th className="px-4 py-3 font-semibold">{t("fields.fieldId")}</th>
+              <th className="px-4 py-3 font-semibold">{t("fields.fieldNumber")}</th>
               <th className="px-4 py-3 font-semibold">{t("fields.kaek")}</th>
               <th className="px-4 py-3 font-semibold">{t("fields.name")}</th>
               <th className="px-4 py-3 font-semibold text-right">{t("fields.officialArea")}</th>
@@ -112,6 +119,7 @@ export default function FieldsTable({ fields, locale }: Props) {
                 className={`hover:bg-gray-50 transition-colors ${i % 2 === 1 ? "bg-gray-50/50" : ""}`}
               >
                 <td className="px-4 py-3 text-gray-500 text-xs">{i + 1}</td>
+                <td className="px-4 py-3 font-mono text-xs text-gray-700">{f.fieldNumber ?? "—"}</td>
                 <td className="px-4 py-3 font-mono text-xs text-gray-700">{f.kaek}</td>
                 <td className="px-4 py-3 font-medium text-gray-900">{f.name}</td>
                 <td className="px-4 py-3 text-right tabular-nums text-gray-700">

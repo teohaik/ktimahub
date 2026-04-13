@@ -33,7 +33,7 @@ export async function PUT(req: Request, { params }: Params) {
 
   const { id } = await params;
   const body = await req.json();
-  const { name, kaek, officialArea, polygon, leaseholderId } = body;
+  const { name, fieldNumber, kaek, officialArea, polygon, leaseholderId } = body;
 
   const calculatedArea =
     polygon && polygon.length >= 3
@@ -44,6 +44,7 @@ export async function PUT(req: Request, { params }: Params) {
     where: { id },
     data: {
       name,
+      fieldNumber: fieldNumber || null,
       kaek,
       officialArea: parseFloat(officialArea) || 0,
       calculatedArea,

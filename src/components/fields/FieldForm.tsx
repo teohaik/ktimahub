@@ -17,6 +17,7 @@ interface FieldFormProps {
   initial?: {
     id: string;
     name: string;
+    fieldNumber: string | null;
     kaek: string;
     officialArea: number;
     calculatedArea: number | null;
@@ -35,6 +36,7 @@ export default function FieldForm({ leaseholders, initial }: FieldFormProps) {
 
   // Form fields
   const [name, setName] = useState(initial?.name ?? "");
+  const [fieldNumber, setFieldNumber] = useState(initial?.fieldNumber ?? "");
   const [kaek, setKaek] = useState(initial?.kaek ?? "");
   const [officialArea, setOfficialArea] = useState(
     initial?.officialArea?.toString() ?? ""
@@ -140,6 +142,7 @@ export default function FieldForm({ leaseholders, initial }: FieldFormProps) {
 
     const body = {
       name,
+      fieldNumber: fieldNumber || null,
       kaek,
       officialArea,
       polygon: vertices.length >= 3 ? vertices : null,
@@ -183,6 +186,15 @@ export default function FieldForm({ leaseholders, initial }: FieldFormProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              className={inputCls}
+            />
+          </FormField>
+
+          <FormField label={t("fields.fieldNumber")}>
+            <input
+              type="text"
+              value={fieldNumber}
+              onChange={(e) => setFieldNumber(e.target.value)}
               className={inputCls}
             />
           </FormField>

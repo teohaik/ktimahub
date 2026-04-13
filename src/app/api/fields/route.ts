@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { name, kaek, officialArea, polygon, leaseholderId } = body;
+  const { name, fieldNumber, kaek, officialArea, polygon, leaseholderId } = body;
 
   if (!name || !kaek) {
     return NextResponse.json({ error: "name and kaek are required" }, { status: 400 });
@@ -39,6 +39,7 @@ export async function POST(req: Request) {
   const field = await db.field.create({
     data: {
       name,
+      fieldNumber: fieldNumber || null,
       kaek,
       officialArea: parseFloat(officialArea) || 0,
       calculatedArea,
