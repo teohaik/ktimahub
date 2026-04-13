@@ -2,8 +2,8 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM = process.env.EMAIL_FROM ?? "KtimaHub <noreply@myfields.vercel.app>";
-const APP_URL = process.env.NEXTAUTH_URL ?? "https://myfields.vercel.app";
+const FROM = process.env.EMAIL_FROM ?? "KtimaHub <noreply@ktimahub.gr>";
+const APP_URL = process.env.NEXTAUTH_URL ?? "https://ktimahub.gr";
 
 export async function sendInviteEmail({
   to,
