@@ -52,7 +52,7 @@ export default function FieldsTable({ fields, locale }: Props) {
       {/* Mobile cards */}
       <div className="sm:hidden divide-y divide-gray-100">
         {rows.map((f, i) => (
-          <div key={f.id} className="p-4 space-y-1">
+          <div key={f.id} className="p-4 space-y-1 cursor-pointer hover:bg-green-50 transition-colors" onClick={() => router.push(`/${locale}/fields/${f.id}`)}>
             <div className="flex items-start justify-between gap-2">
               <div>
                 <p className="font-semibold text-gray-900">{f.name}</p>
@@ -72,7 +72,7 @@ export default function FieldsTable({ fields, locale }: Props) {
             <p className="text-sm text-gray-600">
               {t("fields.leaseholder")}: {f.leaseholder?.name ?? t("fields.noLeaseholder")}
             </p>
-            <div className="flex gap-2 pt-1">
+            <div className="flex gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
               <Link
                 href={`/${locale}/map?field=${f.id}`}
                 className="text-xs text-blue-600 hover:underline"
@@ -116,7 +116,8 @@ export default function FieldsTable({ fields, locale }: Props) {
             {rows.map((f, i) => (
               <tr
                 key={f.id}
-                className={`hover:bg-gray-50 transition-colors ${i % 2 === 1 ? "bg-gray-50/50" : ""}`}
+                onClick={() => router.push(`/${locale}/fields/${f.id}`)}
+                className={`cursor-pointer hover:bg-green-50 transition-colors ${i % 2 === 1 ? "bg-gray-50/50" : ""}`}
               >
                 <td className="px-4 py-3 text-gray-500 text-xs">{i + 1}</td>
                 <td className="px-4 py-3 font-mono text-xs text-gray-700">{f.kaek}</td>
@@ -133,7 +134,7 @@ export default function FieldsTable({ fields, locale }: Props) {
                     <span className="text-gray-400 italic">{t("fields.noLeaseholder")}</span>
                   )}
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center gap-3">
                     <Link
                       href={`/${locale}/map?field=${f.id}`}
