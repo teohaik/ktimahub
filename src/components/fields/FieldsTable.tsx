@@ -103,9 +103,9 @@ export default function FieldsTable({ fields, locale }: Props) {
           <thead>
             <tr className="bg-green-700 text-white text-left text-xs">
               <th className="px-4 py-3 font-semibold">{t("fields.fieldId")}</th>
-              <th className="px-4 py-3 font-semibold">{t("fields.fieldNumber")}</th>
               <th className="px-4 py-3 font-semibold">{t("fields.kaek")}</th>
               <th className="px-4 py-3 font-semibold">{t("fields.name")}</th>
+              <th className="px-4 py-3 font-semibold">{t("fields.fieldNumber")}</th>
               <th className="px-4 py-3 font-semibold text-right">{t("fields.officialArea")}</th>
               <th className="px-4 py-3 font-semibold text-right">{t("fields.calculatedArea")}</th>
               <th className="px-4 py-3 font-semibold">{t("fields.leaseholder")}</th>
@@ -119,9 +119,9 @@ export default function FieldsTable({ fields, locale }: Props) {
                 className={`hover:bg-gray-50 transition-colors ${i % 2 === 1 ? "bg-gray-50/50" : ""}`}
               >
                 <td className="px-4 py-3 text-gray-500 text-xs">{i + 1}</td>
-                <td className="px-4 py-3 font-mono text-xs text-gray-700">{f.fieldNumber ?? "—"}</td>
                 <td className="px-4 py-3 font-mono text-xs text-gray-700">{f.kaek}</td>
                 <td className="px-4 py-3 font-medium text-gray-900">{f.name}</td>
+                <td className="px-4 py-3 font-mono text-xs text-gray-700">{f.fieldNumber ?? "—"}</td>
                 <td className="px-4 py-3 text-right tabular-nums text-gray-700">
                   {fmt(f.officialArea)}
                 </td>

@@ -53,9 +53,9 @@ export default function FullReportButton({ fields }: Props) {
       const pageW = doc.internal.pageSize.getWidth();
       const pageH = doc.internal.pageSize.getHeight();
       const margin = 14;
-      const colW = [10, 25, 38, 42, 32, 32, 42];
+      const colW = [10, 38, 42, 25, 32, 32, 42];
       const headers = [
-        t("fields.fieldId"), t("fields.fieldNumber"), t("fields.kaek"), t("fields.name"),
+        t("fields.fieldId"), t("fields.kaek"), t("fields.name"), t("fields.fieldNumber"),
         t("fields.officialArea"), t("fields.calculatedArea"), t("fields.leaseholder"),
       ];
 
@@ -87,7 +87,7 @@ export default function FullReportButton({ fields }: Props) {
         doc.setFontSize(7.5);
         doc.setFont("NotoSans", "normal");
         const cells = [
-          String(seq), f.fieldNumber ?? "—", f.kaek, f.name,
+          String(seq), f.kaek, f.name, f.fieldNumber ?? "—",
           fmt(f.officialArea), fmt(f.calculatedArea),
           f.leaseholderName ?? "—",
         ];
