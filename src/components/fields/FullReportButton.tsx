@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 
 interface Field {
@@ -18,6 +18,132 @@ interface Props {
   fields: Field[];
 }
 
+// ---------------------------------------------------------------------------
+// Pure-canvas satellite map renderer — no Leaflet, no html2canvas.
+// Fetches ArcGIS World Imagery tiles directly, draws them on a <canvas>,
+// then draws the polygon on top using the exact same Web Mercator projection.
+// This guarantees pixel-perfect alignment between imagery and overlay.
+// ---------------------------------------------------------------------------
+
+const TILE_SIZE = 256;
+const TILE_URL = (z: number, y: number, x: number) =>
+  `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
+
+/** Web Mercator: lng → fractional tile X */
+function lngToTileX(lng: number, zoom: number) {
+  return ((lng + 180) / 360) * Math.pow(2, zoom);
+}
+
+/** Web Mercator: lat → fractional tile Y */
+function latToTileY(lat: number, zoom: number) {
+  const rad = (lat * Math.PI) / 180;
+  return (
+    (1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) /
+    2 *
+    Math.pow(2, zoom)
+  );
+}
+
+async function renderFieldMap(
+  polygon: { lat: number; lng: number }[],
+  canvasW: number,
+  canvasH: number
+): Promise<string> {
+  // 1. Bounds + 30% padding
+  const lats = polygon.map((v) => v.lat);
+  const lngs = polygon.map((v) => v.lng);
+  const pad = 0.3;
+  const latSpan = Math.max(...lats) - Math.min(...lats) || 0.001;
+  const lngSpan = Math.max(...lngs) - Math.min(...lngs) || 0.001;
+  const minLat = Math.min(...lats) - latSpan * pad;
+  const maxLat = Math.max(...lats) + latSpan * pad;
+  const minLng = Math.min(...lngs) - lngSpan * pad;
+  const maxLng = Math.max(...lngs) + lngSpan * pad;
+  const centerLat = (minLat + maxLat) / 2;
+  const centerLng = (minLng + maxLng) / 2;
+
+  // 2. Find highest zoom where padded bounds fit inside canvas
+  let zoom = 19;
+  for (; zoom >= 1; zoom--) {
+    const pxW =
+      (lngToTileX(maxLng, zoom) - lngToTileX(minLng, zoom)) * TILE_SIZE;
+    const pxH =
+      (latToTileY(minLat, zoom) - latToTileY(maxLat, zoom)) * TILE_SIZE;
+    if (pxW <= canvasW && pxH <= canvasH) break;
+  }
+
+  // 3. Centre of canvas in tile-space
+  const cTX = lngToTileX(centerLng, zoom);
+  const cTY = latToTileY(centerLat, zoom);
+
+  // 4. Top-left corner of canvas in tile-space
+  const tlTX = cTX - canvasW / 2 / TILE_SIZE;
+  const tlTY = cTY - canvasH / 2 / TILE_SIZE;
+
+  // 5. Which tile indices cover the canvas?
+  const startX = Math.floor(tlTX);
+  const startY = Math.floor(tlTY);
+  const endX = Math.ceil(tlTX + canvasW / TILE_SIZE);
+  const endY = Math.ceil(tlTY + canvasH / TILE_SIZE);
+
+  // 6. Canvas + context
+  const canvas = document.createElement("canvas");
+  canvas.width = canvasW;
+  canvas.height = canvasH;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#1a1a2e";
+  ctx.fillRect(0, 0, canvasW, canvasH); // dark fallback
+
+  // 7. Fetch & draw tiles (all in parallel)
+  await Promise.all(
+    Array.from({ length: endY - startY + 1 }, (_, dy) =>
+      Array.from({ length: endX - startX + 1 }, (_, dx) => {
+        const tx = startX + dx;
+        const ty = startY + dy;
+        const px = Math.round((tx - tlTX) * TILE_SIZE);
+        const py = Math.round((ty - tlTY) * TILE_SIZE);
+        return new Promise<void>((resolve) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => {
+            ctx.drawImage(img, px, py, TILE_SIZE, TILE_SIZE);
+            resolve();
+          };
+          img.onerror = () => resolve(); // missing tile → transparent
+          img.src = TILE_URL(zoom, ty, tx);
+        });
+      })
+    ).flat()
+  );
+
+  // 8. Project lat/lng → canvas pixel (same math, so always aligned)
+  function project(lat: number, lng: number) {
+    return {
+      x: (lngToTileX(lng, zoom) - tlTX) * TILE_SIZE,
+      y: (latToTileY(lat, zoom) - tlTY) * TILE_SIZE,
+    };
+  }
+
+  // 9. Draw polygon
+  ctx.beginPath();
+  const first = project(polygon[0].lat, polygon[0].lng);
+  ctx.moveTo(first.x, first.y);
+  for (let i = 1; i < polygon.length; i++) {
+    const p = project(polygon[i].lat, polygon[i].lng);
+    ctx.lineTo(p.x, p.y);
+  }
+  ctx.closePath();
+  ctx.fillStyle = "rgba(59,130,246,0.25)";
+  ctx.fill();
+  ctx.strokeStyle = "#1d4ed8";
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  return canvas.toDataURL("image/jpeg", 0.88);
+}
+
+// ---------------------------------------------------------------------------
+
 export default function FullReportButton({ fields }: Props) {
   const t = useTranslations();
   const [generating, setGenerating] = useState(false);
@@ -25,20 +151,15 @@ export default function FullReportButton({ fields }: Props) {
   async function generate() {
     setGenerating(true);
     try {
-      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
-        import("jspdf"),
-        import("html2canvas"),
-      ]);
-      const L = await import("leaflet");
+      const { default: jsPDF } = await import("jspdf");
 
-      // Load Noto Sans (supports Greek) and register with jsPDF
+      // Load Noto Sans (Greek support)
       async function loadFont(url: string): Promise<string> {
-        const res = await fetch(url);
-        const buf = await res.arrayBuffer();
+        const buf = await (await fetch(url)).arrayBuffer();
         const bytes = new Uint8Array(buf);
-        let binary = "";
-        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-        return btoa(binary);
+        let bin = "";
+        for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+        return btoa(bin);
       }
       const [regularB64, boldB64] = await Promise.all([
         loadFont("/fonts/NotoSans-Regular.ttf"),
@@ -71,31 +192,18 @@ export default function FullReportButton({ fields }: Props) {
         doc.setFontSize(7);
         doc.setFont("NotoSans", "bold");
         let x = margin;
-        headers.forEach((h, i) => {
-          doc.text(h, x + 1, y + 5.5);
-          x += colW[i];
-        });
+        headers.forEach((h, i) => { doc.text(h, x + 1, y + 5.5); x += colW[i]; });
         return y + 8;
       }
 
       function drawTableRow(f: Field, seq: number, y: number, shade: boolean) {
-        if (shade) {
-          doc.setFillColor(249, 250, 251);
-          doc.rect(margin, y, pageW - margin * 2, 7, "F");
-        }
+        if (shade) { doc.setFillColor(249, 250, 251); doc.rect(margin, y, pageW - margin * 2, 7, "F"); }
         doc.setTextColor(17, 24, 39);
         doc.setFontSize(7.5);
         doc.setFont("NotoSans", "normal");
-        const cells = [
-          String(seq), f.kaek, f.name, f.fieldNumber ?? "—",
-          fmt(f.officialArea), fmt(f.calculatedArea),
-          f.leaseholderName ?? "—",
-        ];
+        const cells = [String(seq), f.kaek, f.name, f.fieldNumber ?? "—", fmt(f.officialArea), fmt(f.calculatedArea), f.leaseholderName ?? "—"];
         let x = margin;
-        cells.forEach((c, i) => {
-          doc.text(c, x + 1, y + 4.5);
-          x += colW[i];
-        });
+        cells.forEach((c, i) => { doc.text(c, x + 1, y + 4.5); x += colW[i]; });
         doc.setDrawColor(229, 231, 235);
         doc.line(margin, y + 7, pageW - margin, y + 7);
         return y + 7;
@@ -104,106 +212,49 @@ export default function FullReportButton({ fields }: Props) {
       let pageNum = 0;
       function addPageNumber() {
         pageNum++;
-        doc.setFontSize(7);
-        doc.setTextColor(156, 163, 175);
-        doc.setFont("NotoSans", "normal");
-        doc.text(
-          `${new Date().toLocaleDateString("el-GR")}`,
-          margin,
-          pageH - 6
-        );
-        doc.text(
-          `Σελίδα ${pageNum}`,
-          pageW - margin - 20,
-          pageH - 6
-        );
+        doc.setFontSize(7); doc.setTextColor(156, 163, 175); doc.setFont("NotoSans", "normal");
+        doc.text(new Date().toLocaleDateString("el-GR"), margin, pageH - 6);
+        doc.text(`Σελίδα ${pageNum}`, pageW - margin - 20, pageH - 6);
       }
 
-      // -- Page 1+: Table --
-      doc.setFontSize(13);
-      doc.setFont("NotoSans", "bold");
-      doc.setTextColor(17, 24, 39);
+      // -- Table pages --
+      doc.setFontSize(13); doc.setFont("NotoSans", "bold"); doc.setTextColor(17, 24, 39);
       doc.text("Κατάσταση Αγροτεμαχίων", margin, 20);
-
       let y = drawTableHeader(26);
-      let page = 1;
 
       for (let i = 0; i < fields.length; i++) {
-        if (y + 7 > pageH - 16) {
-          addPageNumber();
-          doc.addPage();
-          page++;
-          y = drawTableHeader(14);
-        }
+        if (y + 7 > pageH - 16) { addPageNumber(); doc.addPage(); y = drawTableHeader(14); }
         y = drawTableRow(fields[i], i + 1, y, i % 2 === 1);
       }
       addPageNumber();
 
-      // -- Per-field map pages --
-      // Position at 0,0 (behind everything) so html2canvas captures CSS transforms
-      // correctly. Placing it off-screen horizontally (left:-9999px) caused the tile
-      // layer and polygon SVG overlay to be captured with a positional offset.
-      const mapContainer = document.createElement("div");
-      mapContainer.style.cssText =
-        "width:700px;height:400px;position:fixed;left:0;top:0;z-index:-9999;pointer-events:none;";
-      document.body.appendChild(mapContainer);
-
+      // -- Per-field map pages (pure canvas, no Leaflet/html2canvas) --
       for (const field of fields) {
         if (!field.polygon || field.polygon.length < 3) continue;
 
-        const mapInstance = L.map(mapContainer, { zoomControl: false, attributionControl: false });
-        L.tileLayer(
-          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-        ).addTo(mapInstance);
-        const latlngs = field.polygon.map(
-          (v) => [v.lat, v.lng] as [number, number]
-        );
-        const poly = L.polygon(latlngs, {
-          color: "#1d4ed8", fillColor: "#3b82f6", fillOpacity: 0.3, weight: 2,
-        }).addTo(mapInstance);
-        mapInstance.fitBounds(poly.getBounds(), { padding: [30, 30] });
-
-        // Wait for tiles to load
-        await new Promise((r) => setTimeout(r, 1500));
-
-        // Force Leaflet to recalculate its pane transforms before capture
-        mapInstance.invalidateSize({ animate: false });
-        await new Promise((r) => setTimeout(r, 100));
-
-        const canvas = await html2canvas(mapContainer, {
-          useCORS: true,
-          logging: false,
-          scrollX: 0,
-          scrollY: 0,
-        });
-        const imgData = canvas.toDataURL("image/jpeg", 0.85);
-
-        mapInstance.remove();
+        // Map image is 700×400 px, rendered entirely in a detached <canvas>
+        const imgData = await renderFieldMap(field.polygon, 700, 400);
 
         doc.addPage();
         addPageNumber();
-        doc.setFontSize(12);
-        doc.setFont("NotoSans", "bold");
-        doc.setTextColor(17, 24, 39);
+        doc.setFontSize(12); doc.setFont("NotoSans", "bold"); doc.setTextColor(17, 24, 39);
         doc.text(field.name, margin, 16);
-        doc.setFontSize(8);
-        doc.setFont("NotoSans", "normal");
-        doc.setTextColor(107, 114, 128);
-        const kaekLine = field.fieldNumber
-          ? `ΚΑΕΚ: ${field.kaek}   Αρ. Τεμαχίου: ${field.fieldNumber}`
-          : `ΚΑΕΚ: ${field.kaek}`;
-        doc.text(kaekLine, margin, 22);
+        doc.setFontSize(8); doc.setFont("NotoSans", "normal"); doc.setTextColor(107, 114, 128);
+        doc.text(
+          field.fieldNumber
+            ? `ΚΑΕΚ: ${field.kaek}   Αρ. Τεμαχίου: ${field.fieldNumber}`
+            : `ΚΑΕΚ: ${field.kaek}`,
+          margin, 22
+        );
         doc.text(
           `Επίσημο εμβαδόν: ${fmt(field.officialArea)} τ.μ.   Υπολογιζόμενο: ${fmt(field.calculatedArea)} τ.μ.`,
           margin, 27
         );
-
         const imgW = pageW - margin * 2;
-        const imgH = (canvas.height / canvas.width) * imgW;
+        const imgH = (400 / 700) * imgW;
         doc.addImage(imgData, "JPEG", margin, 32, imgW, Math.min(imgH, pageH - 50));
       }
 
-      document.body.removeChild(mapContainer);
       doc.save("fields-full-report.pdf");
     } finally {
       setGenerating(false);
