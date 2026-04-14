@@ -1,11 +1,11 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import LoginForm from "@/components/auth/LoginForm";
+import SignupForm from "@/components/auth/SignupForm";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 import Link from "next/link";
 
-export default async function LoginPage({
+export default async function SignupPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -13,7 +13,6 @@ export default async function LoginPage({
   const { locale } = await params;
   const session = await auth();
 
-  // Already logged in — go to role-based home
   if (session?.user) {
     redirect(`/${locale}`);
   }
@@ -36,19 +35,13 @@ export default async function LoginPage({
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
             <div className="text-5xl mb-3">🌾</div>
-            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-              Ktima<span className="text-green-600">Hub</span>
+            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+              {t("signupTitle")}
             </h1>
+            <p className="text-sm text-gray-500 mt-1">{t("signupSubtitle")}</p>
           </div>
 
-          <LoginForm locale={locale} />
-
-          <p className="text-center text-xs text-gray-500 mt-4">
-            {t("dontHaveAccount")}{" "}
-            <Link href={`/${locale}/signup`} className="text-green-600 hover:underline font-medium">
-              {t("signUp")}
-            </Link>
-          </p>
+          <SignupForm locale={locale} />
         </div>
       </div>
     </div>

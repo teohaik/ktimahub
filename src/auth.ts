@@ -49,7 +49,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: { id },
           select: { roles: true },
         });
-        const roles = (dbUser?.roles ?? []) as Role[];
+        let roles = (dbUser?.roles ?? []) as Role[];
+
+        // New Google sign-up with no roles → default to LAND_OWNER
+        if (user && roles.length === 0) {
+          await db.user.update({
+            where: { id },
+            data: { roles: ["LAND_OWNER"], status: "ACTIVE" },
+          });
+          roles = ["LAND_OWNER"] as Role[];
+        }
+
         if (user) token.id = user.id!;
         token.roles = roles;
         // Preserve an already-selected activeRole on re-hydration;
