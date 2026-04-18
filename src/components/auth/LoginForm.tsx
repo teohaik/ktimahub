@@ -6,9 +6,10 @@ import { useTranslations } from "next-intl";
 
 interface LoginFormProps {
   locale: string;
+  verified?: boolean;
 }
 
-export default function LoginForm({ locale }: LoginFormProps) {
+export default function LoginForm({ locale, verified }: LoginFormProps) {
   const t = useTranslations("auth");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,7 +30,11 @@ export default function LoginForm({ locale }: LoginFormProps) {
     setLoading(false);
 
     if (res?.error) {
-      setError(t("invalidCredentials"));
+      const msg =
+        res.code === "email_not_verified"
+          ? t("emailNotVerified")
+          : t("invalidCredentials");
+      setError(msg);
     } else {
       window.location.href = `/${locale}`;
     }
@@ -42,6 +47,14 @@ export default function LoginForm({ locale }: LoginFormProps) {
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-6 space-y-4">
+      {verified && (
+        <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 text-sm rounded-lg px-3 py-2.5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          {t("emailVerifiedBanner")}
+        </div>
+      )}
       {/* Google */}
       <button
         onClick={handleGoogle}

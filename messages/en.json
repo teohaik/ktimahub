@@ -38,6 +38,17 @@
     "invalidCredentials": "Invalid credentials",
     "passwordMismatch": "Passwords do not match",
     "emailTaken": "This email is already in use",
+    "tooManyRequests": "Too many attempts. Please try again in an hour.",
+    "emailNotVerified": "Please verify your email before signing in.",
+    "emailVerifiedBanner": "Email verified! You can now sign in.",
+    "verifyEmailTitle": "Check your email",
+    "verifyEmailDesc": "We sent a verification link to your email address. Click it to activate your account.",
+    "verifyEmailSentTo": "Sent to",
+    "verifyEmailSuccess": "Email verified!",
+    "verifyEmailSuccessDesc": "Your account is now active. Please sign in to continue.",
+    "verifyEmailError": "Verification failed",
+    "verifyEmailExpired": "This link has expired. Please sign up again to receive a new one.",
+    "verifyEmailInvalid": "This link is invalid or has already been used.",
     "switchRole": "Switch role"
   },
   "nav": {

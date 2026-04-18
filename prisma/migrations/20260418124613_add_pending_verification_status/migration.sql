@@ -1,0 +1,5 @@
+-- AlterEnum
+ALTER TYPE "UserStatus" ADD VALUE 'PENDING_VERIFICATION';
+
+-- AlterTable
+ALTER TABLE "Invite" ALTER COLUMN "roles" DROP DEFAULT;

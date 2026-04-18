@@ -7,10 +7,13 @@ import Link from "next/link";
 
 export default async function LoginPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ verified?: string }>;
 }) {
   const { locale } = await params;
+  const { verified } = await searchParams;
   const session = await auth();
 
   // Already logged in — go to role-based home
@@ -41,7 +44,7 @@ export default async function LoginPage({
             </h1>
           </div>
 
-          <LoginForm locale={locale} />
+          <LoginForm locale={locale} verified={verified === "1"} />
 
           <p className="text-center text-xs text-gray-500 mt-4">
             {t("dontHaveAccount")}{" "}

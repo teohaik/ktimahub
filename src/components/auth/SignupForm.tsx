@@ -11,7 +11,7 @@ interface Props {
 
 export default function SignupForm({ locale }: Props) {
   const t = useTranslations("auth");
-  const [view, setView] = useState<"choose" | "email">("choose");
+  const [view, setView] = useState<"choose" | "email" | "check-email">("choose");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,16 +33,29 @@ export default function SignupForm({ locale }: Props) {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, locale }),
     });
 
     if (!res.ok) {
       const d = await res.json();
-      setError(d.error === "email_taken" ? t("emailTaken") : d.error ?? "Error");
+      const msg =
+        d.error === "email_taken" ? t("emailTaken") :
+        d.error === "too_many_requests" ? t("tooManyRequests") :
+        d.error ?? "Error";
+      setError(msg);
       setLoading(false);
       return;
     }
 
+    const data = await res.json();
+
+    if (data.requiresVerification) {
+      setView("check-email");
+      setLoading(false);
+      return;
+    }
+
+    // INVITED user — activate and sign in directly
     const result = await signIn("credentials", { email, password, redirect: false });
     if (result?.error) {
       setError(t("invalidCredentials"));
@@ -56,6 +69,17 @@ export default function SignupForm({ locale }: Props) {
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-6 space-y-4">
+      {view === "check-email" && (
+        <div className="text-center py-4 space-y-3">
+          <div className="text-5xl">📧</div>
+          <h2 className="font-bold text-gray-900 text-lg">{t("verifyEmailTitle")}</h2>
+          <p className="text-sm text-gray-500">{t("verifyEmailDesc")}</p>
+          <p className="text-xs text-gray-400 pt-2">
+            {t("verifyEmailSentTo")} <span className="font-medium text-gray-600">{email}</span>
+          </p>
+        </div>
+      )}
+
       {view === "choose" && (
         <>
           <button
@@ -124,12 +148,14 @@ export default function SignupForm({ locale }: Props) {
         </form>
       )}
 
-      <p className="text-center text-xs text-gray-500">
-        {t("alreadyHaveAccount")}{" "}
-        <Link href={`/${locale}/login`} className="text-green-600 hover:underline font-medium">
-          {t("signIn")}
-        </Link>
-      </p>
+      {view !== "check-email" && (
+        <p className="text-center text-xs text-gray-500">
+          {t("alreadyHaveAccount")}{" "}
+          <Link href={`/${locale}/login`} className="text-green-600 hover:underline font-medium">
+            {t("signIn")}
+          </Link>
+        </p>
+      )}
     </div>
   );
 }

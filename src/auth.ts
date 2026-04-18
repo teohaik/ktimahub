@@ -28,6 +28,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!user || !user.password) return null;
 
+        if (user.status === "PENDING_VERIFICATION") {
+          throw new Error("email_not_verified");
+        }
+
         const passwordMatch = await bcrypt.compare(
           credentials.password as string,
           user.password

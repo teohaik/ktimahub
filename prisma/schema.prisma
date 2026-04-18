@@ -15,6 +15,7 @@ enum Role {
 
 enum UserStatus {
   INVITED
+  PENDING_VERIFICATION
   ACTIVE
 }
 

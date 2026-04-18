@@ -38,6 +38,17 @@
     "invalidCredentials": "Λανθασμένα στοιχεία σύνδεσης",
     "passwordMismatch": "Οι κωδικοί δεν ταιριάζουν",
     "emailTaken": "Αυτό το email χρησιμοποιείται ήδη",
+    "tooManyRequests": "Πολλές προσπάθειες. Δοκιμάστε ξανά σε μία ώρα.",
+    "emailNotVerified": "Παρακαλώ επιβεβαιώστε το email σας πριν συνδεθείτε.",
+    "emailVerifiedBanner": "Το email επιβεβαιώθηκε! Μπορείτε τώρα να συνδεθείτε.",
+    "verifyEmailTitle": "Ελέγξτε το email σας",
+    "verifyEmailDesc": "Στείλαμε έναν σύνδεσμο επιβεβαίωσης στη διεύθυνση email σας. Πατήστε τον για να ενεργοποιήσετε τον λογαριασμό σας.",
+    "verifyEmailSentTo": "Εστάλη στο",
+    "verifyEmailSuccess": "Το email επιβεβαιώθηκε!",
+    "verifyEmailSuccessDesc": "Ο λογαριασμός σας είναι πλέον ενεργός. Συνδεθείτε για να συνεχίσετε.",
+    "verifyEmailError": "Αποτυχία επιβεβαίωσης",
+    "verifyEmailExpired": "Αυτός ο σύνδεσμος έχει λήξει. Εγγραφείτε ξανά για να λάβετε νέο.",
+    "verifyEmailInvalid": "Αυτός ο σύνδεσμος δεν είναι έγκυρος ή έχει ήδη χρησιμοποιηθεί.",
     "switchRole": "Αλλαγή ρόλου"
   },
   "nav": {
