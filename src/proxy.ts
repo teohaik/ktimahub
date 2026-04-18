@@ -8,7 +8,7 @@ import type { NextRequest } from "next/server";
 const { auth } = NextAuth(authConfig);
 const intlMiddleware = createMiddleware(routing);
 
-const publicPaths = ["/login", "/api/auth"];
+const publicPaths = ["/", "/login", "/signup", "/invite", "/api/auth"];
 
 function isPublicPath(pathname: string): boolean {
   return publicPaths.some(
