@@ -78,8 +78,8 @@ A bilingual (Greek / English) web application for managing agricultural fields a
 ### Setup
 
 ```bash
-git clone https://github.com/teohaik/field-manager.git
-cd field-manager
+git clone https://github.com/teohaik/ktimahub.git
+cd ktimahub
 npm install
 ```
 
