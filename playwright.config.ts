@@ -29,12 +29,12 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
-      testIgnore: /.*\.(owner|leaseholder)\.spec\.ts/,
+      testIgnore: /.*\.(owner|leaseholder)\.spec\.ts|mobile\.spec\.ts/,
     },
-    // Mobile runs only the dedicated mobile spec
+    // Mobile runs only the dedicated mobile spec (Pixel 5 = Chromium-based, touch enabled)
     {
       name: "mobile",
-      use: { ...devices["iPhone 14"] },
+      use: { ...devices["Pixel 5"] },
       testMatch: /.*mobile\.spec\.ts/,
     },
 

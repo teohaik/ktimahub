@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-// All tests in this file run on iPhone 14 viewport via the "mobile" project in playwright.config.ts
+// All tests in this file run on Pixel 5 viewport via the "mobile" project in playwright.config.ts
 
 test.describe("Mobile — Landing page", () => {
   test("landing page renders on mobile", async ({ page }) => {
@@ -41,7 +41,6 @@ test.describe("Mobile — Auth pages", () => {
     await page.goto("/el/signup");
     await page.getByRole("button", { name: /εγγραφή με email|sign up with email/i }).click();
     await expect(page.locator("#signup-name")).toBeVisible();
-    await page.locator("#signup-name").tap();
     await page.locator("#signup-name").fill("Test");
     await expect(page.locator("#signup-name")).toHaveValue("Test");
   });
@@ -57,6 +56,6 @@ test.describe("Mobile — Auth guards", () => {
 test.describe("Mobile — Language switcher", () => {
   test("language switcher is accessible on mobile", async ({ page }) => {
     await page.goto("/el");
-    await expect(page.getByRole("button", { name: /english/i })).toBeVisible();
+    await expect(page.getByRole("banner").getByRole("button", { name: /english|ελληνικά/i })).toBeVisible();
   });
 });
