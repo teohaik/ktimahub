@@ -18,6 +18,7 @@ export default function SignupForm({ locale }: Props) {
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [honeypot, setHoneypot] = useState("");
 
   async function handleGoogle() {
     setLoading(true);
@@ -33,7 +34,7 @@ export default function SignupForm({ locale }: Props) {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password, locale }),
+      body: JSON.stringify({ name, email, password, locale, website: honeypot }),
     });
 
     if (!res.ok) {
@@ -137,6 +138,18 @@ export default function SignupForm({ locale }: Props) {
           </div>
 
           {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
+
+          {/* Honeypot — hidden from humans, bots fill it */}
+          <input
+            type="text"
+            name="website"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            style={{ position: "absolute", left: "-9999px", width: "1px", height: "1px", opacity: 0 }}
+          />
 
           <button
             type="submit"

@@ -13,7 +13,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "too_many_requests" }, { status: 429 });
   }
 
-  const { name, email, password, locale = "el" } = await req.json();
+  const { name, email, password, locale = "el", website } = await req.json();
+
+  // Honeypot: real users never fill this field
+  if (website) {
+    return NextResponse.json({ ok: true, requiresVerification: true });
+  }
 
   if (!name || !email || !password) {
     return NextResponse.json({ error: "All fields are required" }, { status: 400 });
