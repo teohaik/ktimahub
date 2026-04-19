@@ -77,10 +77,11 @@ export default function LoginForm({ locale, verified }: LoginFormProps) {
       {/* Credentials */}
       <form onSubmit={handleCredentials} className="space-y-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="login-email" className="block text-sm font-medium text-gray-700 mb-1">
             {t("email")}
           </label>
           <input
+            id="login-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -91,10 +92,11 @@ export default function LoginForm({ locale, verified }: LoginFormProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="login-password" className="block text-sm font-medium text-gray-700 mb-1">
             {t("password")}
           </label>
           <input
+            id="login-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

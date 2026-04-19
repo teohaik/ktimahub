@@ -8,14 +8,12 @@ setup("authenticate as owner", async ({ page }) => {
   const password = process.env.TEST_OWNER_PASSWORD;
 
   if (!email || !password) {
-    throw new Error(
-      "TEST_OWNER_EMAIL and TEST_OWNER_PASSWORD must be set"
-    );
+    throw new Error("TEST_OWNER_EMAIL and TEST_OWNER_PASSWORD must be set");
   }
 
   await page.goto("/el/login");
-  await page.getByLabel(/email/i).fill(email);
-  await page.getByLabel(/κωδικός|password/i).fill(password);
+  await page.locator('input[type="email"]').fill(email);
+  await page.locator('input[type="password"]').fill(password);
   await page.getByRole("button", { name: /σύνδεση με email|sign in with email/i }).click();
 
   await expect(page).toHaveURL(/\/el\/(fields|select-role)/, { timeout: 15000 });

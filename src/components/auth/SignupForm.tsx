@@ -120,20 +120,20 @@ export default function SignupForm({ locale }: Props) {
           </button>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t("name")}</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required autoFocus className={inp} />
+            <label htmlFor="signup-name" className="block text-sm font-medium text-gray-700 mb-1">{t("name")}</label>
+            <input id="signup-name" type="text" value={name} onChange={(e) => setName(e.target.value)} required autoFocus className={inp} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t("email")}</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" className={inp} />
+            <label htmlFor="signup-email" className="block text-sm font-medium text-gray-700 mb-1">{t("email")}</label>
+            <input id="signup-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" className={inp} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t("password")}</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete="new-password" className={inp} />
+            <label htmlFor="signup-password" className="block text-sm font-medium text-gray-700 mb-1">{t("password")}</label>
+            <input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete="new-password" className={inp} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t("confirmPassword")}</label>
-            <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required autoComplete="new-password" className={inp} />
+            <label htmlFor="signup-confirm" className="block text-sm font-medium text-gray-700 mb-1">{t("confirmPassword")}</label>
+            <input id="signup-confirm" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required autoComplete="new-password" className={inp} />
           </div>
 
           {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}

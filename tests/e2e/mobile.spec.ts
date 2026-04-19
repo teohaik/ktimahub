@@ -24,8 +24,8 @@ test.describe("Mobile — Landing page", () => {
 test.describe("Mobile — Auth pages", () => {
   test("login form renders correctly on mobile", async ({ page }) => {
     await page.goto("/el/login");
-    await expect(page.getByLabel(/email/i)).toBeVisible();
-    await expect(page.getByLabel(/κωδικός|password/i)).toBeVisible();
+    await expect(page.locator('input[type="email"]')).toBeVisible();
+    await expect(page.locator('input[type="password"]')).toBeVisible();
     await expect(
       page.getByRole("button", { name: /σύνδεση με email|sign in with email/i })
     ).toBeVisible();
@@ -40,11 +40,10 @@ test.describe("Mobile — Auth pages", () => {
   test("email signup form is usable on mobile", async ({ page }) => {
     await page.goto("/el/signup");
     await page.getByRole("button", { name: /εγγραφή με email|sign up with email/i }).click();
-    await expect(page.getByLabel(/ονοματεπώνυμο|full name/i)).toBeVisible();
-    // Input is tappable
-    await page.getByLabel(/ονοματεπώνυμο|full name/i).tap();
-    await page.getByLabel(/ονοματεπώνυμο|full name/i).fill("Test");
-    await expect(page.getByLabel(/ονοματεπώνυμο|full name/i)).toHaveValue("Test");
+    await expect(page.locator("#signup-name")).toBeVisible();
+    await page.locator("#signup-name").tap();
+    await page.locator("#signup-name").fill("Test");
+    await expect(page.locator("#signup-name")).toHaveValue("Test");
   });
 });
 

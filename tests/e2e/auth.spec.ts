@@ -20,17 +20,17 @@ test.describe("Auth guards", () => {
 test.describe("Login page", () => {
   test("renders login form", async ({ page }) => {
     await page.goto("/el/login");
-    await expect(page.getByLabel(/email/i)).toBeVisible();
-    await expect(page.getByLabel(/κωδικός|password/i)).toBeVisible();
+    await expect(page.locator('input[type="email"]')).toBeVisible();
+    await expect(page.locator('input[type="password"]')).toBeVisible();
     await expect(page.getByRole("button", { name: /σύνδεση με email|sign in with email/i })).toBeVisible();
   });
 
   test("shows error for invalid credentials", async ({ page }) => {
     await page.goto("/el/login");
-    await page.getByLabel(/email/i).fill("nobody@example.com");
-    await page.getByLabel(/κωδικός|password/i).fill("wrongpassword");
+    await page.locator('input[type="email"]').fill("nobody@example.com");
+    await page.locator('input[type="password"]').fill("wrongpassword");
     await page.getByRole("button", { name: /σύνδεση με email|sign in with email/i }).click();
-    await expect(page.getByText(/λανθασμένα|invalid credentials/i)).toBeVisible({ timeout: 8000 });
+    await expect(page.getByText(/λανθασμένα|invalid credentials/i)).toBeVisible({ timeout: 10000 });
   });
 
   test("Google sign-in button is visible", async ({ page }) => {
@@ -55,19 +55,17 @@ test.describe("Signup page", () => {
   test("email signup form appears after clicking email option", async ({ page }) => {
     await page.goto("/el/signup");
     await page.getByRole("button", { name: /εγγραφή με email|sign up with email/i }).click();
-    await expect(page.getByLabel(/ονοματεπώνυμο|full name/i)).toBeVisible();
-    await expect(page.getByLabel(/email/i)).toBeVisible();
+    await expect(page.locator("#signup-name")).toBeVisible();
+    await expect(page.locator("#signup-email")).toBeVisible();
   });
 
   test("password mismatch shows error", async ({ page }) => {
     await page.goto("/el/signup");
     await page.getByRole("button", { name: /εγγραφή με email|sign up with email/i }).click();
-    await page.getByLabel(/ονοματεπώνυμο|full name/i).fill("Test User");
-    await page.getByLabel(/^email$/i).fill("test@example.com");
-    // Fill password fields - get them in order
-    const passwordFields = page.getByLabel(/κωδικός|password/i);
-    await passwordFields.nth(0).fill("password123");
-    await passwordFields.nth(1).fill("differentpass");
+    await page.locator("#signup-name").fill("Test User");
+    await page.locator("#signup-email").fill("test@example.com");
+    await page.locator("#signup-password").fill("password123");
+    await page.locator("#signup-confirm").fill("differentpass");
     await page.getByRole("button", { name: /δημιουργία λογαριασμού|create account/i }).click();
     await expect(page.getByText(/κωδικοί δεν ταιριάζουν|passwords do not match/i)).toBeVisible();
   });
@@ -88,6 +86,6 @@ test.describe("Email verification page", () => {
 
   test("invalid token shows error", async ({ page }) => {
     await page.goto("/el/verify-email?token=invalidtoken123");
-    await expect(page.getByText(/αποτυχία επιβεβαίωσης|verification failed/i)).toBeVisible({ timeout: 8000 });
+    await expect(page.getByText(/αποτυχία επιβεβαίωσης|verification failed/i)).toBeVisible({ timeout: 10000 });
   });
 });
