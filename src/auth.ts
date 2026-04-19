@@ -4,6 +4,7 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
+import { checkRateLimit } from "@/lib/rate-limit";
 import type { Role } from "@/generated/prisma/client";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -19,8 +20,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         if (!credentials?.email || !credentials?.password) return null;
+
+        const ip =
+          request?.headers?.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+          "anonymous";
+        const { allowed } = await checkRateLimit("login", ip);
+        if (!allowed) throw new Error("too_many_requests");
 
         const user = await db.user.findUnique({
           where: { email: credentials.email as string },
