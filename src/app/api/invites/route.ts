@@ -2,13 +2,19 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { sendInviteEmail } from "@/lib/email";
-import { randomUUID } from "crypto";
+import { randomBytes } from "crypto";
 import type { Role } from "@/generated/prisma/client";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user || session.user.activeRole !== "SUPER_ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { allowed } = await checkRateLimit("invite", session.user.id);
+  if (!allowed) {
+    return NextResponse.json({ error: "too_many_requests" }, { status: 429 });
   }
 
   const body = await req.json();
@@ -53,7 +59,7 @@ export async function POST(req: Request) {
     });
   }
 
-  const token = randomUUID();
+  const token = randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
   const invite = await db.invite.create({

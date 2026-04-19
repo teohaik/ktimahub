@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 type Params = { params: Promise<{ token: string }> };
 
-export async function GET(_req: Request, { params }: Params) {
+export async function GET(req: Request, { params }: Params) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anonymous";
+  const { allowed } = await checkRateLimit("invite", ip);
+  if (!allowed) {
+    return NextResponse.json({ error: "too_many_requests" }, { status: 429 });
+  }
+
   const { token } = await params;
 
   const invite = await db.invite.findUnique({ where: { token } });
