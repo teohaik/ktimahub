@@ -33,8 +33,8 @@ test.describe("Owner — Fields table", () => {
     await page.getByRole("link", { name: /προσθήκη αγροτεμαχίου|add field/i }).waitFor({ timeout: 10000 });
     const hasTable = await page.getByRole("table").isVisible().catch(() => false);
     if (!hasTable) { test.skip(); }
-    await expect(page.getByText(/καεκ|kaek/i)).toBeVisible();
-    await expect(page.getByText(/εμβαδόν|area/i).first()).toBeVisible();
+    await expect(page.locator("th", { hasText: /καεκ|kaek/i })).toBeVisible();
+    await expect(page.locator("th", { hasText: /εμβαδόν|area/i }).first()).toBeVisible();
   });
 
   test("clicking a field row navigates to field detail", async ({ page }) => {
