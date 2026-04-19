@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import { getTranslations } from "next-intl/server";
+import { headers } from "next/headers";
 import Link from "next/link";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export default async function VerifyEmailPage({
   params,
@@ -17,6 +19,12 @@ export default async function VerifyEmailPage({
   let status: Status = "pending";
 
   if (token) {
+    const headersList = await headers();
+    const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anonymous";
+    const { allowed } = await checkRateLimit("verifyEmail", ip);
+    if (!allowed) {
+      status = "invalid";
+    } else {
     const record = await db.verificationToken.findUnique({ where: { token } });
 
     if (!record) {
@@ -32,6 +40,7 @@ export default async function VerifyEmailPage({
       await db.verificationToken.delete({ where: { token } });
       status = "success";
     }
+    } // end rate-limit else
   }
 
   return (
