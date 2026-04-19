@@ -53,8 +53,8 @@ test.describe("Owner — Fields table", () => {
 test.describe("Owner — Add field form", () => {
   test("add field page renders form", async ({ page }) => {
     await page.goto("/el/fields/new");
-    await expect(page.getByLabel(/ονομασία|name/i)).toBeVisible({ timeout: 10000 });
-    await expect(page.getByLabel(/kaek|καεκ/i)).toBeVisible();
+    await expect(page.getByText(/ονομασία|^name$/i).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/kaek|καεκ/i).first()).toBeVisible();
   });
 
   test("polygon mode switcher is visible", async ({ page }) => {
