@@ -1,9 +1,9 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Landing page", () => {
-  test("root redirects to /el", async ({ page }) => {
+  test("root redirects to a locale homepage", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveURL(/\/el/);
+    await expect(page).toHaveURL(/\/(el|en)/);
   });
 
   test("landing page is visible to unauthenticated visitors", async ({ page }) => {

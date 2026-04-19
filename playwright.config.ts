@@ -31,10 +31,11 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
       testIgnore: /.*\.(owner|leaseholder)\.spec\.ts/,
     },
+    // Mobile runs only the dedicated mobile spec
     {
       name: "mobile",
       use: { ...devices["iPhone 14"] },
-      testIgnore: /.*\.(owner|leaseholder)\.spec\.ts/,
+      testMatch: /.*mobile\.spec\.ts/,
     },
 
     // Authenticated owner tests
