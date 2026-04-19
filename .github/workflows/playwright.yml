@@ -71,6 +71,13 @@ jobs:
             exit 1
           fi
 
+      - name: Warm up preview deployment
+        if: github.event_name == 'pull_request'
+        run: |
+          URL="${{ steps.vercel-preview.outputs.preview_url }}"
+          echo "Warming up $URL..."
+          for i in 1 2 3; do curl -sf "$URL" -o /dev/null && break || sleep 5; done
+
       - name: Run Playwright tests
         run: npx playwright test
         env:
