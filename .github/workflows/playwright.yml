@@ -32,10 +32,49 @@ jobs:
       - name: Create auth state directory
         run: mkdir -p .playwright
 
+      - name: Wait for Vercel preview deployment
+        if: github.event_name == 'pull_request'
+        id: vercel-preview
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          SHA="${{ github.event.pull_request.head.sha }}"
+          PROJECT_ID="prj_IA7fUQlTxYBews0N4zyvWQGmmWf9"
+          TEAM_ID="team_X4dKkOIBJlEcK6WmtrOegVta"
+
+          echo "Waiting for Vercel preview (SHA: $SHA)..."
+
+          for i in $(seq 1 24); do
+            RESPONSE=$(curl -s \
+              "https://api.vercel.com/v6/deployments?projectId=$PROJECT_ID&teamId=$TEAM_ID&meta.githubCommitSha=$SHA&limit=1" \
+              -H "Authorization: Bearer $VERCEL_TOKEN")
+
+            STATE=$(echo "$RESPONSE" | jq -r '.deployments[0].state // empty')
+            URL=$(echo "$RESPONSE"   | jq -r '.deployments[0].url   // empty')
+
+            echo "Attempt $i/24: state=${STATE:-pending} url=${URL:-none}"
+
+            if [ "$STATE" = "READY" ]; then
+              echo "preview_url=https://$URL" >> "$GITHUB_OUTPUT"
+              echo "Preview ready: https://$URL"
+              break
+            elif [ "$STATE" = "ERROR" ] || [ "$STATE" = "CANCELED" ]; then
+              echo "Vercel deployment failed (state: $STATE)"
+              exit 1
+            fi
+
+            sleep 15
+          done
+
+          if ! grep -q "preview_url" "$GITHUB_OUTPUT" 2>/dev/null; then
+            echo "Timed out waiting for Vercel preview deployment"
+            exit 1
+          fi
+
       - name: Run Playwright tests
         run: npx playwright test
         env:
-          BASE_URL: https://www.ktimahub.gr
+          BASE_URL: ${{ github.event_name == 'pull_request' && steps.vercel-preview.outputs.preview_url || 'https://www.ktimahub.gr' }}
           TEST_OWNER_EMAIL: ${{ secrets.TEST_OWNER_EMAIL }}
           TEST_OWNER_PASSWORD: ${{ secrets.TEST_OWNER_PASSWORD }}
           TEST_LEASEHOLDER_EMAIL: ${{ secrets.TEST_LEASEHOLDER_EMAIL }}
