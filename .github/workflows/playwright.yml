@@ -35,48 +35,27 @@ jobs:
       - name: Wait for Vercel preview deployment
         if: github.event_name == 'pull_request'
         id: vercel-preview
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          SHA="${{ github.event.pull_request.head.sha }}"
-          PROJECT_ID="prj_IA7fUQlTxYBews0N4zyvWQGmmWf9"
-          TEAM_ID="team_X4dKkOIBJlEcK6WmtrOegVta"
+          BRANCH="${{ github.head_ref }}"
+          # Sanitize: lowercase, replace non-alphanumeric with hyphens, collapse and trim hyphens
+          SLUG=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | sed 's/^-//;s/-$//')
+          URL="https://ktimahub-git-${SLUG}-teohaik.vercel.app"
+          echo "preview_url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Waiting for preview: $URL"
 
-          echo "Waiting for Vercel preview (SHA: $SHA)..."
-
-          for i in $(seq 1 24); do
-            RESPONSE=$(curl -s \
-              "https://api.vercel.com/v6/deployments?projectId=$PROJECT_ID&teamId=$TEAM_ID&meta.githubCommitSha=$SHA&limit=1" \
-              -H "Authorization: Bearer $VERCEL_TOKEN")
-
-            STATE=$(echo "$RESPONSE" | jq -r '.deployments[0].state // empty')
-            URL=$(echo "$RESPONSE"   | jq -r '.deployments[0].url   // empty')
-
-            echo "Attempt $i/24: state=${STATE:-pending} url=${URL:-none}"
-
-            if [ "$STATE" = "READY" ]; then
-              echo "preview_url=https://$URL" >> "$GITHUB_OUTPUT"
-              echo "Preview ready: https://$URL"
+          for i in $(seq 1 40); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
+            echo "Attempt $i/40: HTTP $STATUS"
+            if [ "$STATUS" = "200" ] || [ "$STATUS" = "307" ] || [ "$STATUS" = "302" ]; then
+              echo "Preview is up (HTTP $STATUS)"
               break
-            elif [ "$STATE" = "ERROR" ] || [ "$STATE" = "CANCELED" ]; then
-              echo "Vercel deployment failed (state: $STATE)"
+            fi
+            if [ "$i" = "40" ]; then
+              echo "Timed out waiting for Vercel preview deployment"
               exit 1
             fi
-
             sleep 15
           done
-
-          if ! grep -q "preview_url" "$GITHUB_OUTPUT" 2>/dev/null; then
-            echo "Timed out waiting for Vercel preview deployment"
-            exit 1
-          fi
-
-      - name: Warm up preview deployment
-        if: github.event_name == 'pull_request'
-        run: |
-          URL="${{ steps.vercel-preview.outputs.preview_url }}"
-          echo "Warming up $URL..."
-          for i in 1 2 3; do curl -sf "$URL" -o /dev/null && break || sleep 5; done
 
       - name: Run Playwright tests
         run: npx playwright test
