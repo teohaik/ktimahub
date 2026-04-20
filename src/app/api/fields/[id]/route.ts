@@ -35,9 +35,10 @@ export async function PUT(req: Request, { params }: Params) {
   const body = await req.json();
   const { name, fieldNumber, kaek, officialArea, polygon, leaseholderId } = body;
 
+  let parsedOfficialArea = 0;
   if (officialArea !== undefined && officialArea !== null) {
-    const area = parseFloat(officialArea);
-    if (isNaN(area) || area < 0) {
+    parsedOfficialArea = parseFloat(officialArea);
+    if (isNaN(parsedOfficialArea) || parsedOfficialArea < 0) {
       return NextResponse.json({ error: "Invalid officialArea" }, { status: 400 });
     }
   }
@@ -60,7 +61,7 @@ export async function PUT(req: Request, { params }: Params) {
       name,
       fieldNumber: fieldNumber || null,
       kaek,
-      officialArea: officialArea != null ? parseFloat(officialArea) : 0,
+      officialArea: parsedOfficialArea,
       calculatedArea,
       polygon: polygon ?? undefined,
       leaseholderId: leaseholderId || null,
