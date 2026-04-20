@@ -8,7 +8,7 @@ import { sendVerificationEmail } from "@/lib/email";
 export async function POST(req: Request) {
   const ip =
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anonymous";
-  const { allowed } = await checkRateLimit(ip);
+  const { allowed } = await checkRateLimit("signup", ip);
   if (!allowed) {
     return NextResponse.json({ error: "too_many_requests" }, { status: 429 });
   }
@@ -22,6 +22,11 @@ export async function POST(req: Request) {
 
   if (!name || !email || !password) {
     return NextResponse.json({ error: "All fields are required" }, { status: 400 });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return NextResponse.json({ error: "invalid_email" }, { status: 400 });
   }
 
   if (password.length < 8) {

@@ -16,12 +16,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "fieldId, year, cropType required" }, { status: 400 });
   }
 
-  // Leaseholders can only update their own fields
-  if (session.user.activeRole === "LEASEHOLDER") {
-    const field = await db.field.findUnique({ where: { id: fieldId } });
-    if (!field || field.leaseholderId !== session.user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+  const field = await db.field.findUnique({ where: { id: fieldId } });
+  if (!field) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const role = session.user.activeRole;
+  if (role === "LEASEHOLDER" && field.leaseholderId !== session.user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  if (role === "LAND_OWNER" && field.ownerId !== session.user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const crop = await db.cropHistory.upsert({

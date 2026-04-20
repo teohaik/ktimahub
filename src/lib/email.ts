@@ -1,6 +1,11 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazily instantiated so the module can be imported at build time without RESEND_API_KEY
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
+  return _resend;
+}
 
 const FROM = process.env.EMAIL_FROM ?? "KtimaHub <noreply@ktimahub.gr>";
 const APP_URL = process.env.NEXTAUTH_URL ?? "https://ktimahub.gr";
@@ -65,7 +70,7 @@ export async function sendVerificationEmail({
 </html>
   `;
 
-  await resend.emails.send({ from: FROM, to, subject, html });
+  await getResend().emails.send({ from: FROM, to, subject, html });
 }
 
 export async function sendInviteEmail({
@@ -139,7 +144,7 @@ export async function sendInviteEmail({
 </html>
   `;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to,
     subject,

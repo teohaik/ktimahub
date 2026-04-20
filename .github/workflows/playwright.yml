@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: "0 6 * * 1" # Every Monday at 6:00 UTC
   workflow_dispatch: # Allow manual trigger from GitHub UI
+  pull_request:
+    branches: [main]
 
 jobs:
   test:
@@ -30,10 +32,35 @@ jobs:
       - name: Create auth state directory
         run: mkdir -p .playwright
 
+      - name: Wait for Vercel preview deployment
+        if: github.event_name == 'pull_request'
+        id: vercel-preview
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          # Sanitize: lowercase, replace non-alphanumeric with hyphens, collapse and trim hyphens
+          SLUG=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | sed 's/^-//;s/-$//')
+          URL="https://ktimahub-git-${SLUG}-teohaik.vercel.app"
+          echo "preview_url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Waiting for preview: $URL"
+
+          for i in $(seq 1 40); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
+            echo "Attempt $i/40: HTTP $STATUS"
+            if [ "$STATUS" = "200" ] || [ "$STATUS" = "307" ] || [ "$STATUS" = "302" ]; then
+              echo "Preview is up (HTTP $STATUS)"
+              break
+            fi
+            if [ "$i" = "40" ]; then
+              echo "Timed out waiting for Vercel preview deployment"
+              exit 1
+            fi
+            sleep 15
+          done
+
       - name: Run Playwright tests
         run: npx playwright test
         env:
-          BASE_URL: https://www.ktimahub.gr
+          BASE_URL: ${{ github.event_name == 'pull_request' && steps.vercel-preview.outputs.preview_url || 'https://www.ktimahub.gr' }}
           TEST_OWNER_EMAIL: ${{ secrets.TEST_OWNER_EMAIL }}
           TEST_OWNER_PASSWORD: ${{ secrets.TEST_OWNER_PASSWORD }}
           TEST_LEASEHOLDER_EMAIL: ${{ secrets.TEST_LEASEHOLDER_EMAIL }}

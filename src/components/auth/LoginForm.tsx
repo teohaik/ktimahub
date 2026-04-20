@@ -33,6 +33,8 @@ export default function LoginForm({ locale, verified }: LoginFormProps) {
       const msg =
         res.code === "email_not_verified"
           ? t("emailNotVerified")
+          : res.code === "too_many_requests"
+          ? t("tooManyRequests")
           : t("invalidCredentials");
       setError(msg);
     } else {

@@ -35,6 +35,21 @@ export async function PUT(req: Request, { params }: Params) {
   const body = await req.json();
   const { name, fieldNumber, kaek, officialArea, polygon, leaseholderId } = body;
 
+  let parsedOfficialArea = 0;
+  if (officialArea !== undefined && officialArea !== null) {
+    parsedOfficialArea = parseFloat(officialArea);
+    if (isNaN(parsedOfficialArea) || parsedOfficialArea < 0) {
+      return NextResponse.json({ error: "Invalid officialArea" }, { status: 400 });
+    }
+  }
+
+  if (leaseholderId) {
+    const leaseholder = await db.user.findUnique({ where: { id: leaseholderId } });
+    if (!leaseholder || !leaseholder.roles.includes("LEASEHOLDER")) {
+      return NextResponse.json({ error: "Invalid leaseholder" }, { status: 400 });
+    }
+  }
+
   const calculatedArea =
     polygon && polygon.length >= 3
       ? calculatePolygonArea(polygon as LatLng[])
@@ -46,7 +61,7 @@ export async function PUT(req: Request, { params }: Params) {
       name,
       fieldNumber: fieldNumber || null,
       kaek,
-      officialArea: parseFloat(officialArea) || 0,
+      officialArea: parsedOfficialArea,
       calculatedArea,
       polygon: polygon ?? undefined,
       leaseholderId: leaseholderId || null,
