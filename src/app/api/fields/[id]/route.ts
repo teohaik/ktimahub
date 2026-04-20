@@ -35,6 +35,13 @@ export async function PUT(req: Request, { params }: Params) {
   const body = await req.json();
   const { name, fieldNumber, kaek, officialArea, polygon, leaseholderId } = body;
 
+  if (officialArea !== undefined && officialArea !== null) {
+    const area = parseFloat(officialArea);
+    if (isNaN(area) || area < 0) {
+      return NextResponse.json({ error: "Invalid officialArea" }, { status: 400 });
+    }
+  }
+
   if (leaseholderId) {
     const leaseholder = await db.user.findUnique({ where: { id: leaseholderId } });
     if (!leaseholder || !leaseholder.roles.includes("LEASEHOLDER")) {
