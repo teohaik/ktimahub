@@ -53,37 +53,32 @@ export async function POST(req: Request) {
             },
             {
               type: "text",
-              text: `Extract all rows from the table titled "ΠΙΝΑΚΑΣ 2: ΣΤΟΙΧΕΙΑ ΓΗΠΕΔΩΝ" in this Greek E9 tax declaration PDF.
+              text: `Extract all rows from the table "ΠΙΝΑΚΑΣ 2: ΣΤΟΙΧΕΙΑ ΓΗΠΕΔΩΝ" in this Greek E9 tax declaration PDF.
 
-Each row is one agricultural land parcel. The area columns map to cultivationType:
-Column index 1 = ΜΟΝΟΕΤΗΣ ΚΑΛΛΙΕΡΓΕΙΑ → "ANNUAL"
-Column index 2 = ΠΟΛΥΕΤΗΣ ΚΑΛΛΙΕΡΓΕΙΑ → "PERENNIAL"
-Column index 3 = ΕΛΙΕΣ → "OLIVE"
-Column index 4 = ΛΟΙΠΕΣ ΔΕΝΔΡΟΚΑΛΛΙΕΡΓΕΙΕΣ → "OTHER_TREES"
-Column index 5 = ΒΟΣΚΟΤΟΠΟΣ/ΧΕΡΣΕΣ → "PASTURE"
-Column index 6 = ΔΑΣΙΚΗ ΕΚΤΑΣΗ → "FOREST"
-Column index 7+ → "OTHER"
+Each row is one agricultural parcel. Map the column index before the area value to cultivationType:
+1=ANNUAL, 2=PERENNIAL, 3=OLIVE, 4=OTHER_TREES, 5=PASTURE, 6=FOREST, 7+=OTHER
 
-The number before the area value in each row is the column index.
-Area values: Greek format e.g. "4.638,00" = 4638.00 m².
-Ownership: e.g. "37,5" = 37.5, "100" = 100.0.
-Irrigated: "ΝΑΙ" = true, "ΟΧΙ" = false.
-KAEK: long property code e.g. "007650 390300 98097 201011".
-Name: location/place name e.g. "ΚΑΖΑΝΙΑ 316".
+Rules:
+- Area: Greek format "4.638,00" → 4638.0
+- Ownership: "37,5" → 37.5
+- Irrigated: "ΝΑΙ" → true, "ΟΧΙ" → false
+- KAEK: full code e.g. "007650 390300 98097 201011"
+- name: location/place name e.g. "ΚΑΖΑΝΙΑ 316"
 
-Return ONLY a valid JSON array, no markdown:
-[{"kaek":string,"name":string,"municipality":string,"district":string,"prefecture":string,"officialArea":number,"cultivationType":"ANNUAL"|"PERENNIAL"|"OLIVE"|"OTHER_TREES"|"PASTURE"|"FOREST"|"OTHER","ownershipPercentage":number,"irrigated":boolean}]
-
-Return [] if no ΠΙΝΑΚΑΣ 2 rows found.`,
+Output the JSON array continuation (the opening bracket has already been written):`,
             },
           ],
+        },
+        {
+          role: "assistant",
+          content: "[",
         },
       ],
     });
 
-    const raw = message.content[0].type === "text" ? message.content[0].text.trim() : "[]";
-    // Strip markdown code fences if present
-    const cleaned = raw.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "").trim();
+    const completion = message.content[0].type === "text" ? message.content[0].text.trim() : "]";
+    // Prepend the prefilled "[" and parse
+    const cleaned = ("[" + completion).replace(/\n?```$/i, "").trim();
     fields = JSON.parse(cleaned);
     if (!Array.isArray(fields)) throw new Error("Not an array");
   } catch (err) {
