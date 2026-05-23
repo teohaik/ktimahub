@@ -85,7 +85,7 @@ export async function POST(req: Request) {
 Find the table called "ΠΙΝΑΚΑΣ 2: ΣΤΟΙΧΕΙΑ ΓΗΠΕΔΩΝ" (it may span multiple pages). Extract EVERY row from this table and call import_fields.
 
 Each row in ΠΙΝΑΚΑΣ 2 represents one agricultural land parcel and contains:
-- Κ.Α.Ε.Κ. (KAEK): a long numeric property code like "007650 390300 98097 201011"
+- Κ.Α.Ε.Κ. (KAEK): the SECOND code column — a long 4-part land registry code like "007650 390300 98097 201011" (4 groups of digits separated by spaces). Do NOT use the first column (ΑΡΙΘΜΟΣ ΤΑΥΤΟΤΗΤΑΣ ΑΚΙΝΗΤΟΥ / ATAK) which is a shorter 2-part code like "008546 89850".
 - ΝΟΜΟΣ: prefecture e.g. "ΠΙΕΡΙΑΣ"
 - ΔΗΜΟΣ: municipality e.g. "ΜΕΘΩΝΗΣ"
 - ΔΗΜΟΤΙΚΟ ΔΙΑΜΕΡΙΣΜΑ: district e.g. "ΜΕΘΩΝΗΣ"
@@ -102,7 +102,7 @@ Each row in ΠΙΝΑΚΑΣ 2 represents one agricultural land parcel and contain
 - ΠΟΣΟΣΤΟ ΣΥΝΙΔΙΟΚΤΗΣΙΑΣ: ownership % e.g. "37,5" → 37.5 or "100" → 100.0
 - Η ΕΔΑΦΙΚΗ ΕΚΤΑΣΗ ΕΙΝΑΙ ΑΡΔΕΥΟΜΕΝΗ: irrigated "ΝΑΙ"=true / "ΟΧΙ"=false
 
-Example row: KAEK "007650 390300 98097 201011", location "ΚΑΖΑΝΙΑ 316", ΠΙΕΡΙΑΣ, ΜΕΘΩΝΗΣ, area 4638.0 m², column index 3 (OLIVE), ownership 100.0%, not irrigated.
+Example row: ATAK (ignore) "008546 89850", KAEK (use this) "007650 390300 98097 201011", location "ΚΑΖΑΝΙΑ 316", ΠΙΕΡΙΑΣ, ΜΕΘΩΝΗΣ, area 4638.0 m², column index 3 (OLIVE), ownership 100.0%, not irrigated.
 
 Extract ALL rows from ΠΙΝΑΚΑΣ 2 (there may be 10–50 rows across multiple pages). Call import_fields even if only some fields are partially readable.`,
             },
