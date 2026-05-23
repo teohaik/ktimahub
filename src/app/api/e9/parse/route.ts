@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   try {
     const client = new Anthropic();
     const message = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-4-6",
       max_tokens: 4096,
       messages: [
         {
@@ -87,8 +87,9 @@ Return [] if no ΠΙΝΑΚΑΣ 2 rows found.`,
     fields = JSON.parse(cleaned);
     if (!Array.isArray(fields)) throw new Error("Not an array");
   } catch (err) {
-    console.error("[e9/parse] Claude extraction failed:", err);
-    return NextResponse.json({ error: "Failed to parse PDF content" }, { status: 422 });
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[e9/parse] Claude extraction failed:", msg);
+    return NextResponse.json({ error: "Failed to parse PDF content", detail: msg }, { status: 422 });
   }
 
   return NextResponse.json({ fields });
