@@ -85,7 +85,7 @@ export async function POST(req: Request) {
 Find the table called "ΠΙΝΑΚΑΣ 2: ΣΤΟΙΧΕΙΑ ΓΗΠΕΔΩΝ" (it may span multiple pages). Extract EVERY row from this table and call import_fields.
 
 Each row in ΠΙΝΑΚΑΣ 2 represents one agricultural land parcel and contains:
-- Κ.Α.Ε.Κ. (KAEK): the SECOND code column — the land registry ID. Both codes wrap across 2 lines in the PDF. ATAK (first column) wraps as 1 group per line e.g. "008546" / "89850" → total 2 groups. KAEK (second column) wraps as 2 groups per line e.g. "007650 390311" / "98089 204067" → total 4 groups joined as "007650 390311 98089 204067". Some parcels may have no KAEK assigned yet — in that case use the ATAK value as the kaek field instead.
+- Κ.Α.Ε.Κ. (KAEK): the SECOND code column — the land registry ID. Both codes wrap across 2 lines in the PDF. ATAK (first column) wraps as 1 group per line e.g. "008546" / "89850" → total 2 groups. KAEK (second column) wraps as 2 groups per line e.g. "007650 390311" / "98089 204067" → total 4 groups joined as "007650 390311 98089 204067". Some parcels may have no KAEK assigned yet — in that case leave the kaek field as an empty string "".
 - ΝΟΜΟΣ: prefecture e.g. "ΠΙΕΡΙΑΣ"
 - ΔΗΜΟΣ: municipality e.g. "ΜΕΘΩΝΗΣ"
 - ΔΗΜΟΤΙΚΟ ΔΙΑΜΕΡΙΣΜΑ: district e.g. "ΜΕΘΩΝΗΣ"
