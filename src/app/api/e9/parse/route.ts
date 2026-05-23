@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import Anthropic from "@anthropic-ai/sdk";
-import { PDFParse } from "pdf-parse";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type PDFParseInstance = InstanceType<typeof PDFParse> & { getText(): Promise<{ text: string }> };
 
 export interface E9ParsedField {
   kaek: string;
@@ -15,6 +12,15 @@ export interface E9ParsedField {
   cultivationType: "ANNUAL" | "PERENNIAL" | "OLIVE" | "OTHER_TREES" | "PASTURE" | "FOREST" | "OTHER";
   ownershipPercentage: number;
   irrigated: boolean;
+}
+
+async function extractPdfText(buffer: Buffer): Promise<string> {
+  // Dynamic import keeps pdfjs-dist out of the Next.js bundle (serverExternalPackages)
+  const { PDFParse } = await import("pdf-parse");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const parser = new PDFParse({ data: new Uint8Array(buffer) }) as any;
+  const result = await parser.getText();
+  return result.text as string;
 }
 
 export async function POST(req: Request) {
@@ -33,16 +39,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "File too large (max 10 MB)" }, { status: 400 });
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const parser = new PDFParse({ data: buffer }) as PDFParseInstance;
-  const { text } = await parser.getText();
+  let text: string;
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    text = await extractPdfText(buffer);
+  } catch (err) {
+    console.error("[e9/parse] PDF extraction failed:", err);
+    return NextResponse.json({ error: "Failed to read PDF" }, { status: 422 });
+  }
 
-  const client = new Anthropic();
-
-  const message = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 4096,
-    system: `You are a data extractor for Greek E9 tax property declaration PDFs.
+  let fields: E9ParsedField[];
+  try {
+    const client = new Anthropic();
+    const message = await client.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 4096,
+      system: `You are a data extractor for Greek E9 tax property declaration PDFs.
 Extract all rows from the table titled "ΠΙΝΑΚΑΣ 2: ΣΤΟΙΧΕΙΑ ΓΗΠΕΔΩΝ" (Table 2: Land/Field data).
 
 Each row represents one agricultural land parcel. The area columns represent:
@@ -77,16 +89,14 @@ Return ONLY a valid JSON array of objects with these exact fields:
 }
 
 Return an empty array [] if no ΠΙΝΑΚΑΣ 2 rows are found. Output only raw JSON, no markdown.`,
-    messages: [{ role: "user", content: text }],
-  });
+      messages: [{ role: "user", content: text }],
+    });
 
-  const raw = message.content[0].type === "text" ? message.content[0].text.trim() : "[]";
-
-  let fields: E9ParsedField[];
-  try {
+    const raw = message.content[0].type === "text" ? message.content[0].text.trim() : "[]";
     fields = JSON.parse(raw);
     if (!Array.isArray(fields)) throw new Error("Not an array");
-  } catch {
+  } catch (err) {
+    console.error("[e9/parse] Claude extraction failed:", err);
     return NextResponse.json({ error: "Failed to parse PDF content" }, { status: 422 });
   }
 

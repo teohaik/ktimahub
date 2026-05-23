@@ -15,6 +15,8 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   // Leaflet needs client-side rendering; mark it as external to avoid SSR issues
   transpilePackages: ["leaflet", "react-leaflet"],
+  // pdf-parse and pdfjs-dist use dynamic requires incompatible with the Next.js bundler
+  serverExternalPackages: ["pdf-parse", "pdfjs-dist", "canvas"],
   env: {
     NEXT_PUBLIC_APP_VERSION: version,
   },
