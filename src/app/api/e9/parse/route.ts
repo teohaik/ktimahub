@@ -39,47 +39,69 @@ export async function POST(req: Request) {
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 4096,
+      tools: [
+        {
+          name: "import_fields",
+          description: "Import extracted agricultural parcels from ΠΙΝΑΚΑΣ 2 of an E9 declaration",
+          input_schema: {
+            type: "object" as const,
+            properties: {
+              fields: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    kaek: { type: "string" },
+                    name: { type: "string" },
+                    municipality: { type: "string" },
+                    district: { type: "string" },
+                    prefecture: { type: "string" },
+                    officialArea: { type: "number" },
+                    cultivationType: { type: "string", enum: ["ANNUAL","PERENNIAL","OLIVE","OTHER_TREES","PASTURE","FOREST","OTHER"] },
+                    ownershipPercentage: { type: "number" },
+                    irrigated: { type: "boolean" },
+                  },
+                  required: ["kaek","name","municipality","district","prefecture","officialArea","cultivationType","ownershipPercentage","irrigated"],
+                },
+              },
+            },
+            required: ["fields"],
+          },
+        },
+      ],
+      tool_choice: { type: "tool", name: "import_fields" },
       messages: [
         {
           role: "user",
           content: [
             {
               type: "document",
-              source: {
-                type: "base64",
-                media_type: "application/pdf",
-                data: pdfBase64,
-              },
+              source: { type: "base64", media_type: "application/pdf", data: pdfBase64 },
             },
             {
               type: "text",
-              text: `Extract all rows from the table "ΠΙΝΑΚΑΣ 2: ΣΤΟΙΧΕΙΑ ΓΗΠΕΔΩΝ" in this Greek E9 tax declaration PDF.
+              text: `Extract all rows from the table "ΠΙΝΑΚΑΣ 2: ΣΤΟΙΧΕΙΑ ΓΗΠΕΔΩΝ" in this Greek E9 tax declaration PDF and call import_fields with the results.
 
-Each row is one agricultural parcel. Map the column index before the area value to cultivationType:
+Map the column index that appears before the area value to cultivationType:
 1=ANNUAL, 2=PERENNIAL, 3=OLIVE, 4=OTHER_TREES, 5=PASTURE, 6=FOREST, 7+=OTHER
 
-Rules:
 - Area: Greek format "4.638,00" → 4638.0
-- Ownership: "37,5" → 37.5
+- Ownership: "37,5" → 37.5, "100" → 100.0
 - Irrigated: "ΝΑΙ" → true, "ΟΧΙ" → false
 - KAEK: full code e.g. "007650 390300 98097 201011"
 - name: location/place name e.g. "ΚΑΖΑΝΙΑ 316"
 
-Output the JSON array continuation (the opening bracket has already been written):`,
+Call import_fields with an empty fields array if no ΠΙΝΑΚΑΣ 2 rows are found.`,
             },
           ],
-        },
-        {
-          role: "assistant",
-          content: "[",
         },
       ],
     });
 
-    const completion = message.content[0].type === "text" ? message.content[0].text.trim() : "]";
-    // Prepend the prefilled "[" and parse
-    const cleaned = ("[" + completion).replace(/\n?```$/i, "").trim();
-    fields = JSON.parse(cleaned);
+    const toolUse = message.content.find((b) => b.type === "tool_use");
+    if (!toolUse || toolUse.type !== "tool_use") throw new Error("No tool_use block in response");
+    const input = toolUse.input as { fields: E9ParsedField[] };
+    fields = input.fields ?? [];
     if (!Array.isArray(fields)) throw new Error("Not an array");
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
