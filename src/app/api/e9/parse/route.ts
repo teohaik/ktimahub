@@ -5,6 +5,7 @@ import Anthropic from "@anthropic-ai/sdk";
 export interface E9ParsedField {
   kaek: string;
   name: string;
+  fieldNumber: string;
   municipality: string;
   district: string;
   prefecture: string;
@@ -53,6 +54,7 @@ export async function POST(req: Request) {
                   properties: {
                     kaek: { type: "string" },
                     name: { type: "string" },
+                    fieldNumber: { type: "string" },
                     municipality: { type: "string" },
                     district: { type: "string" },
                     prefecture: { type: "string" },
@@ -61,7 +63,7 @@ export async function POST(req: Request) {
                     ownershipPercentage: { type: "number" },
                     irrigated: { type: "boolean" },
                   },
-                  required: ["kaek","name","municipality","district","prefecture","officialArea","cultivationType","ownershipPercentage","irrigated"],
+                  required: ["kaek","name","fieldNumber","municipality","district","prefecture","officialArea","cultivationType","ownershipPercentage","irrigated"],
                 },
               },
             },
@@ -89,7 +91,7 @@ Each row in ΠΙΝΑΚΑΣ 2 represents one agricultural land parcel and contain
 - ΝΟΜΟΣ: prefecture e.g. "ΠΙΕΡΙΑΣ"
 - ΔΗΜΟΣ: municipality e.g. "ΜΕΘΩΝΗΣ"
 - ΔΗΜΟΤΙΚΟ ΔΙΑΜΕΡΙΣΜΑ: district e.g. "ΜΕΘΩΝΗΣ"
-- ΘΕΣΗ/ΟΔΟΣ: location name e.g. "ΚΑΖΑΝΙΑ 316" or "ΕΦΟΡΙΑ 88"
+- ΘΕΣΗ/ΟΔΟΣ: location name e.g. "ΚΑΖΑΝΙΑ 316" or "ΕΦΟΡΙΑ 88". Split into two parts: the text portion goes into "name" (e.g. "ΚΑΖΑΝΙΑ", "ΕΦΟΡΙΑ") and the trailing number goes into "fieldNumber" (e.g. "316", "88"). If there is no trailing number, fieldNumber is "".
 - Area in m²: a number like "4.638,00" (dot=thousands, comma=decimal) → 4638.0
 - A column index (1-8) indicating the type of land use:
   1=ΜΟΝΟΕΤΗΣ ΚΑΛΛΙΕΡΓΕΙΑ → "ANNUAL"
@@ -102,7 +104,7 @@ Each row in ΠΙΝΑΚΑΣ 2 represents one agricultural land parcel and contain
 - ΠΟΣΟΣΤΟ ΣΥΝΙΔΙΟΚΤΗΣΙΑΣ: ownership % e.g. "37,5" → 37.5 or "100" → 100.0
 - Η ΕΔΑΦΙΚΗ ΕΚΤΑΣΗ ΕΙΝΑΙ ΑΡΔΕΥΟΜΕΝΗ: irrigated "ΝΑΙ"=true / "ΟΧΙ"=false
 
-Example: in the PDF you see two wrapped codes side by side — ATAK "008546" / "89850" (2 groups, ignore) and KAEK "007650 390300" / "98097 201011" (4 groups, import as "007650 390300 98097 201011"), then location "ΚΑΖΑΝΙΑ 316", ΠΙΕΡΙΑΣ, ΜΕΘΩΝΗΣ, area 4638.0 m², column index 3 (OLIVE), ownership 100.0%, not irrigated.
+Example: ATAK "008546" / "89850" (ignore), KAEK "007650 390300" / "98097 201011" → "007650 390300 98097 201011", location "ΚΑΖΑΝΙΑ 316" → name "ΚΑΖΑΝΙΑ" + fieldNumber "316", ΠΙΕΡΙΑΣ, ΜΕΘΩΝΗΣ, area 4638.0, column 3 (OLIVE), ownership 100.0, not irrigated.
 
 Extract ALL rows from ΠΙΝΑΚΑΣ 2 (there may be 10–50 rows across multiple pages). Call import_fields even if only some fields are partially readable.`,
             },
