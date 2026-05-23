@@ -80,18 +80,31 @@ export async function POST(req: Request) {
             },
             {
               type: "text",
-              text: `Extract all rows from the table "ΠΙΝΑΚΑΣ 2: ΣΤΟΙΧΕΙΑ ΓΗΠΕΔΩΝ" in this Greek E9 tax declaration PDF and call import_fields with the results.
+              text: `This is a Greek E9 tax property declaration (Βεβαίωση Δηλωθείσας Περιουσιακής Κατάστασης).
 
-Map the column index that appears before the area value to cultivationType:
-1=ANNUAL, 2=PERENNIAL, 3=OLIVE, 4=OTHER_TREES, 5=PASTURE, 6=FOREST, 7+=OTHER
+Find the table called "ΠΙΝΑΚΑΣ 2: ΣΤΟΙΧΕΙΑ ΓΗΠΕΔΩΝ" (it may span multiple pages). Extract EVERY row from this table and call import_fields.
 
-- Area: Greek format "4.638,00" → 4638.0
-- Ownership: "37,5" → 37.5, "100" → 100.0
-- Irrigated: "ΝΑΙ" → true, "ΟΧΙ" → false
-- KAEK: full code e.g. "007650 390300 98097 201011"
-- name: location/place name e.g. "ΚΑΖΑΝΙΑ 316"
+Each row in ΠΙΝΑΚΑΣ 2 represents one agricultural land parcel and contains:
+- Κ.Α.Ε.Κ. (KAEK): a long numeric property code like "007650 390300 98097 201011"
+- ΝΟΜΟΣ: prefecture e.g. "ΠΙΕΡΙΑΣ"
+- ΔΗΜΟΣ: municipality e.g. "ΜΕΘΩΝΗΣ"
+- ΔΗΜΟΤΙΚΟ ΔΙΑΜΕΡΙΣΜΑ: district e.g. "ΜΕΘΩΝΗΣ"
+- ΘΕΣΗ/ΟΔΟΣ: location name e.g. "ΚΑΖΑΝΙΑ 316" or "ΕΦΟΡΙΑ 88"
+- Area in m²: a number like "4.638,00" (dot=thousands, comma=decimal) → 4638.0
+- A column index (1-8) indicating the type of land use:
+  1=ΜΟΝΟΕΤΗΣ ΚΑΛΛΙΕΡΓΕΙΑ → "ANNUAL"
+  2=ΠΟΛΥΕΤΗΣ ΚΑΛΛΙΕΡΓΕΙΑ → "PERENNIAL"
+  3=ΕΛΙΕΣ → "OLIVE"
+  4=ΛΟΙΠΕΣ ΔΕΝΔΡΟΚΑΛΛΙΕΡΓΕΙΕΣ → "OTHER_TREES"
+  5=ΒΟΣΚΟΤΟΠΟΣ → "PASTURE"
+  6=ΔΑΣΙΚΗ ΕΚΤΑΣΗ → "FOREST"
+  7 or 8 → "OTHER"
+- ΠΟΣΟΣΤΟ ΣΥΝΙΔΙΟΚΤΗΣΙΑΣ: ownership % e.g. "37,5" → 37.5 or "100" → 100.0
+- Η ΕΔΑΦΙΚΗ ΕΚΤΑΣΗ ΕΙΝΑΙ ΑΡΔΕΥΟΜΕΝΗ: irrigated "ΝΑΙ"=true / "ΟΧΙ"=false
 
-Call import_fields with an empty fields array if no ΠΙΝΑΚΑΣ 2 rows are found.`,
+Example row: KAEK "007650 390300 98097 201011", location "ΚΑΖΑΝΙΑ 316", ΠΙΕΡΙΑΣ, ΜΕΘΩΝΗΣ, area 4638.0 m², column index 3 (OLIVE), ownership 100.0%, not irrigated.
+
+Extract ALL rows from ΠΙΝΑΚΑΣ 2 (there may be 10–50 rows across multiple pages). Call import_fields even if only some fields are partially readable.`,
             },
           ],
         },
@@ -102,6 +115,7 @@ Call import_fields with an empty fields array if no ΠΙΝΑΚΑΣ 2 rows are fo
     if (!toolUse || toolUse.type !== "tool_use") throw new Error("No tool_use block in response");
     const input = toolUse.input as { fields: E9ParsedField[] };
     fields = input.fields ?? [];
+    console.log(`[e9/parse] stop_reason=${message.stop_reason} fields_found=${fields.length}`);
     if (!Array.isArray(fields)) throw new Error("Not an array");
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
