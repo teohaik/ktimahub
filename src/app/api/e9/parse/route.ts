@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     const client = new Anthropic();
     const message = await client.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 4096,
+      max_tokens: 16000,
       tools: [
         {
           name: "import_fields",
