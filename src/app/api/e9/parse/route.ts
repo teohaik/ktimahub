@@ -14,15 +14,6 @@ export interface E9ParsedField {
   irrigated: boolean;
 }
 
-async function extractPdfText(buffer: Buffer): Promise<string> {
-  // Dynamic import keeps pdfjs-dist out of the Next.js bundle (serverExternalPackages)
-  const { PDFParse } = await import("pdf-parse");
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const parser = new PDFParse({ data: new Uint8Array(buffer) }) as any;
-  const result = await parser.getText();
-  return result.text as string;
-}
-
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user || session.user.activeRole !== "LAND_OWNER") {
@@ -39,14 +30,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "File too large (max 10 MB)" }, { status: 400 });
   }
 
-  let text: string;
-  try {
-    const buffer = Buffer.from(await file.arrayBuffer());
-    text = await extractPdfText(buffer);
-  } catch (err) {
-    console.error("[e9/parse] PDF extraction failed:", err);
-    return NextResponse.json({ error: "Failed to read PDF" }, { status: 422 });
-  }
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const pdfBase64 = buffer.toString("base64");
 
   let fields: E9ParsedField[];
   try {
@@ -54,46 +39,52 @@ export async function POST(req: Request) {
     const message = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 4096,
-      system: `You are a data extractor for Greek E9 tax property declaration PDFs.
-Extract all rows from the table titled "ΠΙΝΑΚΑΣ 2: ΣΤΟΙΧΕΙΑ ΓΗΠΕΔΩΝ" (Table 2: Land/Field data).
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "document",
+              source: {
+                type: "base64",
+                media_type: "application/pdf",
+                data: pdfBase64,
+              },
+            },
+            {
+              type: "text",
+              text: `Extract all rows from the table titled "ΠΙΝΑΚΑΣ 2: ΣΤΟΙΧΕΙΑ ΓΗΠΕΔΩΝ" in this Greek E9 tax declaration PDF.
 
-Each row represents one agricultural land parcel. The area columns represent:
-Column index 1 = ΜΟΝΟΕΤΗΣ ΚΑΛΛΙΕΡΓΕΙΑ (annual crops) → cultivationType: "ANNUAL"
-Column index 2 = ΠΟΛΥΕΤΗΣ ΚΑΛΛΙΕΡΓΕΙΑ (perennial crops) → cultivationType: "PERENNIAL"
-Column index 3 = ΕΛΙΕΣ (olive trees) → cultivationType: "OLIVE"
-Column index 4 = ΛΟΙΠΕΣ ΔΕΝΔΡΟΚΑΛΛΙΕΡΓΕΙΕΣ (other tree crops) → cultivationType: "OTHER_TREES"
-Column index 5 = ΒΟΣΚΟΤΟΠΟΣ/ΧΕΡΣΕΣ (pasture/uncultivated) → cultivationType: "PASTURE"
-Column index 6 = ΔΑΣΙΚΗ ΕΚΤΑΣΗ (forest) → cultivationType: "FOREST"
-Column index 7+ = other → cultivationType: "OTHER"
+Each row is one agricultural land parcel. The area columns map to cultivationType:
+Column index 1 = ΜΟΝΟΕΤΗΣ ΚΑΛΛΙΕΡΓΕΙΑ → "ANNUAL"
+Column index 2 = ΠΟΛΥΕΤΗΣ ΚΑΛΛΙΕΡΓΕΙΑ → "PERENNIAL"
+Column index 3 = ΕΛΙΕΣ → "OLIVE"
+Column index 4 = ΛΟΙΠΕΣ ΔΕΝΔΡΟΚΑΛΛΙΕΡΓΕΙΕΣ → "OTHER_TREES"
+Column index 5 = ΒΟΣΚΟΤΟΠΟΣ/ΧΕΡΣΕΣ → "PASTURE"
+Column index 6 = ΔΑΣΙΚΗ ΕΚΤΑΣΗ → "FOREST"
+Column index 7+ → "OTHER"
 
-The number appearing immediately before the area value in a row is the column index.
-Area values use Greek number format with dots as thousands separators and commas as decimals (e.g. "4.638,00" = 4638.00 m²).
-Ownership percentage appears as e.g. "37,5" or "100" (convert to float, e.g. 37.5, 100.0).
-Irrigated = "ΝΑΙ" → true, "ΟΧΙ" → false.
+The number before the area value in each row is the column index.
+Area values: Greek format e.g. "4.638,00" = 4638.00 m².
+Ownership: e.g. "37,5" = 37.5, "100" = 100.0.
+Irrigated: "ΝΑΙ" = true, "ΟΧΙ" = false.
+KAEK: long property code e.g. "007650 390300 98097 201011".
+Name: location/place name e.g. "ΚΑΖΑΝΙΑ 316".
 
-KAEK is the long property code like "007650 390300 98097 201011" or "012826 390310 50865 505002".
-Name/location (ΘΕΣΗ) is the place name and number like "ΚΑΖΑΝΙΑ 316" or "ΕΦΟΡΙΑ 88".
-Municipality (ΔΗΜΟΣ) and district (ΔΗΜΟΤΙΚΟ ΔΙΑΜΕΡΙΣΜΑ) and prefecture (ΝΟΜΟΣ) are location fields.
+Return ONLY a valid JSON array, no markdown:
+[{"kaek":string,"name":string,"municipality":string,"district":string,"prefecture":string,"officialArea":number,"cultivationType":"ANNUAL"|"PERENNIAL"|"OLIVE"|"OTHER_TREES"|"PASTURE"|"FOREST"|"OTHER","ownershipPercentage":number,"irrigated":boolean}]
 
-Return ONLY a valid JSON array of objects with these exact fields:
-{
-  "kaek": string,
-  "name": string,
-  "municipality": string,
-  "district": string,
-  "prefecture": string,
-  "officialArea": number,
-  "cultivationType": "ANNUAL"|"PERENNIAL"|"OLIVE"|"OTHER_TREES"|"PASTURE"|"FOREST"|"OTHER",
-  "ownershipPercentage": number,
-  "irrigated": boolean
-}
-
-Return an empty array [] if no ΠΙΝΑΚΑΣ 2 rows are found. Output only raw JSON, no markdown.`,
-      messages: [{ role: "user", content: text }],
+Return [] if no ΠΙΝΑΚΑΣ 2 rows found.`,
+            },
+          ],
+        },
+      ],
     });
 
     const raw = message.content[0].type === "text" ? message.content[0].text.trim() : "[]";
-    fields = JSON.parse(raw);
+    // Strip markdown code fences if present
+    const cleaned = raw.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "").trim();
+    fields = JSON.parse(cleaned);
     if (!Array.isArray(fields)) throw new Error("Not an array");
   } catch (err) {
     console.error("[e9/parse] Claude extraction failed:", err);
