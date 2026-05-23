@@ -1,13 +1,18 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
-// Lazily instantiated so the module can be imported at build time without RESEND_API_KEY
-let _resend: Resend | null = null;
-function getResend(): Resend {
-  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
-  return _resend;
+function getTransporter() {
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST ?? "mail.chaikalis.gr",
+    port: Number(process.env.SMTP_PORT ?? 465),
+    secure: true, // SSL on port 465
+    auth: {
+      user: process.env.SMTP_USER ?? "ktimahub@chaikalis.gr",
+      pass: process.env.SMTP_PASS,
+    },
+  });
 }
 
-const FROM = process.env.EMAIL_FROM ?? "KtimaHub <noreply@ktimahub.gr>";
+const FROM = process.env.EMAIL_FROM ?? "KtimaHub <ktimahub@chaikalis.gr>";
 const APP_URL = process.env.NEXTAUTH_URL ?? "https://ktimahub.gr";
 
 export async function sendVerificationEmail({
@@ -70,7 +75,7 @@ export async function sendVerificationEmail({
 </html>
   `;
 
-  await getResend().emails.send({ from: FROM, to, subject, html });
+  await getTransporter().sendMail({ from: FROM, to, subject, html });
 }
 
 export async function sendInviteEmail({
@@ -144,10 +149,5 @@ export async function sendInviteEmail({
 </html>
   `;
 
-  await getResend().emails.send({
-    from: FROM,
-    to,
-    subject,
-    html,
-  });
+  await getTransporter().sendMail({ from: FROM, to, subject, html });
 }
