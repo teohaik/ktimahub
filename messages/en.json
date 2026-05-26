@@ -62,6 +62,7 @@
   "fields": {
     "title": "Fields",
     "addField": "Add field",
+    "total": "Total",
     "editField": "Edit field",
     "fieldId": "ID",
     "fieldNumber": "Field No.",

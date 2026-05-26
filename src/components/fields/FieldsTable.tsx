@@ -39,6 +39,10 @@ export default function FieldsTable({ fields, locale }: Props) {
     return n.toLocaleString("el-GR", { maximumFractionDigits: 0 });
   }
 
+  const totalOfficial = rows.reduce((s, f) => s + f.officialArea, 0);
+  const totalCalculated = rows.reduce((s, f) => s + (f.calculatedArea ?? 0), 0);
+  const hasAnyCalculated = rows.some((f) => f.calculatedArea != null);
+
   if (rows.length === 0) {
     return (
       <div className="text-center py-16 text-gray-400">
@@ -95,6 +99,11 @@ export default function FieldsTable({ fields, locale }: Props) {
             </div>
           </div>
         ))}
+        {/* Mobile totals */}
+        <div className="px-4 py-3 bg-green-50 border-t-2 border-green-200 grid grid-cols-2 gap-x-4 text-sm font-semibold text-gray-800">
+          <span>{t("fields.officialArea")}: {fmt(totalOfficial)}</span>
+          <span>{t("fields.calculatedArea")}: {hasAnyCalculated ? fmt(totalCalculated) : "—"}</span>
+        </div>
       </div>
 
       {/* Desktop table */}
@@ -163,6 +172,18 @@ export default function FieldsTable({ fields, locale }: Props) {
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr className="bg-green-50 border-t-2 border-green-200 text-sm font-semibold text-gray-800">
+              <td className="px-4 py-3 text-xs text-gray-500" colSpan={4}>
+                {t("fields.total")} ({rows.length})
+              </td>
+              <td className="px-4 py-3 text-right tabular-nums">{fmt(totalOfficial)}</td>
+              <td className="px-4 py-3 text-right tabular-nums">
+                {hasAnyCalculated ? fmt(totalCalculated) : "—"}
+              </td>
+              <td colSpan={2} />
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>
