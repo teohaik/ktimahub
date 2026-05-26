@@ -177,6 +177,7 @@
     "importing": "Importing...",
     "doneTitle": "Import complete",
     "doneDesc": "{count} fields have been added to your account. You can now draw polygons and assign leaseholders.",
+    "doneSkipped": "{count} fields were skipped because their ATAK already exists in your account.",
     "goToFields": "Go to fields",
     "importMore": "Import another E9",
     "noFieldsFound": "No agricultural fields (ΠΙΝΑΚΑΣ 2) found in this PDF.",

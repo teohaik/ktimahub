@@ -31,6 +31,7 @@ export default function ImportWizard({ locale }: ImportWizardProps) {
   const [error, setError] = useState("");
   const [fields, setFields] = useState<ReviewField[]>([]);
   const [importedCount, setImportedCount] = useState(0);
+  const [skippedCount, setSkippedCount] = useState(0);
   const [dragging, setDragging] = useState(false);
 
   const processFile = useCallback(async (file: File) => {
@@ -112,6 +113,7 @@ export default function ImportWizard({ locale }: ImportWizardProps) {
         return;
       }
       setImportedCount(data.count);
+      setSkippedCount(data.skipped ?? 0);
       setStep("done");
     } catch {
       setError("Import failed");
@@ -124,6 +126,7 @@ export default function ImportWizard({ locale }: ImportWizardProps) {
     setFields([]);
     setError("");
     setImportedCount(0);
+    setSkippedCount(0);
   };
 
   return (
@@ -322,6 +325,11 @@ export default function ImportWizard({ locale }: ImportWizardProps) {
             <p className="text-sm text-gray-500 max-w-md">
               {t("doneDesc", { count: importedCount })}
             </p>
+            {skippedCount > 0 && (
+              <p className="text-sm text-amber-600 max-w-md">
+                {t("doneSkipped", { count: skippedCount })}
+              </p>
+            )}
             <div className="flex gap-3 mt-2">
               <button
                 onClick={reset}
