@@ -20,8 +20,26 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Too many fields (max 200)" }, { status: 400 });
   }
 
+  const incomingAtaks = fields
+    .map((f) => f.atak?.replace(/\s+/g, "").slice(0, 50))
+    .filter((a): a is string => !!a);
+
+  const existing = incomingAtaks.length > 0
+    ? await db.field.findMany({
+        where: { ownerId: session.user.id, atak: { in: incomingAtaks } },
+        select: { atak: true },
+      })
+    : [];
+
+  const existingAtaks = new Set(existing.map((f) => f.atak));
+
+  const toCreate = fields.filter((f) => {
+    const atak = f.atak?.replace(/\s+/g, "").slice(0, 50);
+    return !atak || !existingAtaks.has(atak);
+  });
+
   const created = await db.$transaction(
-    fields.map((f) =>
+    toCreate.map((f) =>
       db.field.create({
         data: {
           name: f.name.trim().slice(0, 255) || "Αγροτεμάχιο",
@@ -37,5 +55,6 @@ export async function POST(req: Request) {
     )
   );
 
-  return NextResponse.json({ count: created.length }, { status: 201 });
+  const skipped = fields.length - toCreate.length;
+  return NextResponse.json({ count: created.length, skipped }, { status: 201 });
 }

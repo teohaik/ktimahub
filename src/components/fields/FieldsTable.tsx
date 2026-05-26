@@ -20,11 +20,33 @@ interface Props {
   locale: string;
 }
 
+type SortKey = "name" | "officialArea" | "calculatedArea";
+type SortDir = "asc" | "desc";
+
 export default function FieldsTable({ fields, locale }: Props) {
   const t = useTranslations();
   const router = useRouter();
   const [deleting, setDeleting] = useState<string | null>(null);
   const [rows, setRows] = useState(fields);
+  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  function handleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }
+
+  const sorted = [...rows].sort((a, b) => {
+    let cmp = 0;
+    if (sortKey === "name") cmp = a.name.localeCompare(b.name, "el");
+    else if (sortKey === "officialArea") cmp = a.officialArea - b.officialArea;
+    else if (sortKey === "calculatedArea") cmp = (a.calculatedArea ?? -1) - (b.calculatedArea ?? -1);
+    return sortDir === "asc" ? cmp : -cmp;
+  });
 
   async function handleDelete(id: string) {
     if (!confirm(t("common.confirm") + "?")) return;
@@ -39,6 +61,10 @@ export default function FieldsTable({ fields, locale }: Props) {
     return n.toLocaleString("el-GR", { maximumFractionDigits: 0 });
   }
 
+  const totalOfficial = rows.reduce((s, f) => s + f.officialArea, 0);
+  const totalCalculated = rows.reduce((s, f) => s + (f.calculatedArea ?? 0), 0);
+  const hasAnyCalculated = rows.some((f) => f.calculatedArea != null);
+
   if (rows.length === 0) {
     return (
       <div className="text-center py-16 text-gray-400">
@@ -51,7 +77,7 @@ export default function FieldsTable({ fields, locale }: Props) {
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
       {/* Mobile cards */}
       <div className="sm:hidden divide-y divide-gray-100">
-        {rows.map((f, i) => (
+        {sorted.map((f, i) => (
           <div key={f.id} className="p-4 space-y-1 cursor-pointer hover:bg-green-50 transition-colors" onClick={() => router.push(`/${locale}/fields/${f.id}`)}>
             <div className="flex items-start justify-between gap-2">
               <div>
@@ -95,6 +121,11 @@ export default function FieldsTable({ fields, locale }: Props) {
             </div>
           </div>
         ))}
+        {/* Mobile totals */}
+        <div className="px-4 py-3 bg-green-50 border-t-2 border-green-200 grid grid-cols-2 gap-x-4 text-sm font-semibold text-gray-800">
+          <span>{t("fields.officialArea")}: {fmt(totalOfficial)}</span>
+          <span>{t("fields.calculatedArea")}: {hasAnyCalculated ? fmt(totalCalculated) : "—"}</span>
+        </div>
       </div>
 
       {/* Desktop table */}
@@ -104,16 +135,22 @@ export default function FieldsTable({ fields, locale }: Props) {
             <tr className="bg-green-700 text-white text-left text-xs">
               <th className="px-4 py-3 font-semibold">{t("fields.fieldId")}</th>
               <th className="px-4 py-3 font-semibold">{t("fields.kaek")}</th>
-              <th className="px-4 py-3 font-semibold">{t("fields.name")}</th>
+              <th className="px-4 py-3 font-semibold">
+                <SortHeader label={t("fields.name")} col="name" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+              </th>
               <th className="px-4 py-3 font-semibold">{t("fields.fieldNumber")}</th>
-              <th className="px-4 py-3 font-semibold text-right">{t("fields.officialArea")}</th>
-              <th className="px-4 py-3 font-semibold text-right">{t("fields.calculatedArea")}</th>
+              <th className="px-4 py-3 font-semibold text-right">
+                <SortHeader label={t("fields.officialArea")} col="officialArea" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
+              </th>
+              <th className="px-4 py-3 font-semibold text-right">
+                <SortHeader label={t("fields.calculatedArea")} col="calculatedArea" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
+              </th>
               <th className="px-4 py-3 font-semibold">{t("fields.leaseholder")}</th>
               <th className="px-4 py-3 font-semibold">{t("common.actions")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {rows.map((f, i) => (
+            {sorted.map((f, i) => (
               <tr
                 key={f.id}
                 onClick={() => router.push(`/${locale}/fields/${f.id}`)}
@@ -163,9 +200,46 @@ export default function FieldsTable({ fields, locale }: Props) {
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr className="bg-green-50 border-t-2 border-green-200 text-sm font-semibold text-gray-800">
+              <td className="px-4 py-3 text-xs text-gray-500" colSpan={4}>
+                {t("fields.total")} ({rows.length})
+              </td>
+              <td className="px-4 py-3 text-right tabular-nums">{fmt(totalOfficial)}</td>
+              <td className="px-4 py-3 text-right tabular-nums">
+                {hasAnyCalculated ? fmt(totalCalculated) : "—"}
+              </td>
+              <td colSpan={2} />
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>
+  );
+}
+
+function SortHeader({
+  label, col, sortKey, sortDir, onSort, right,
+}: {
+  label: string;
+  col: SortKey;
+  sortKey: SortKey;
+  sortDir: SortDir;
+  onSort: (k: SortKey) => void;
+  right?: boolean;
+}) {
+  const active = sortKey === col;
+  return (
+    <button
+      type="button"
+      onClick={() => onSort(col)}
+      className={`flex items-center gap-1 hover:text-green-200 transition-colors ${right ? "ml-auto" : ""}`}
+    >
+      {label}
+      <span className="text-[10px] opacity-70">
+        {active ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}
+      </span>
+    </button>
   );
 }
 
