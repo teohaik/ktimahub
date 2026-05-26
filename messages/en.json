@@ -165,6 +165,8 @@
     "selected": "{count} selected",
     "colInclude": "Include",
     "colName": "Name / Location",
+    "colFieldCode": "Field No.",
+    "colAtak": "ATAK",
     "colKaek": "KAEK",
     "colArea": "Area (m²)",
     "colType": "Type",

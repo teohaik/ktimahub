@@ -165,6 +165,8 @@
     "selected": "{count} επιλεγμένα",
     "colInclude": "Συμπερίληψη",
     "colName": "Ονομασία / Θέση",
+    "colFieldCode": "Αρ. Αγρ.",
+    "colAtak": "ΑΤΑΚ",
     "colKaek": "ΚΑΕΚ",
     "colArea": "Εμβαδόν (τ.μ.)",
     "colType": "Τύπος",

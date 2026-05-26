@@ -60,9 +60,12 @@ export default function ImportWizard({ locale }: ImportWizardProps) {
         return;
       }
 
+      const normalize = (s?: string) => s?.trim().replace(/\s+/g, " ") ?? "";
       setFields(
         data.fields.map((f: E9ParsedField) => ({
           ...f,
+          atak: normalize(f.atak),
+          kaek: normalize(f.kaek),
           included: true,
           editedName: f.name,
         }))
@@ -212,6 +215,8 @@ export default function ImportWizard({ locale }: ImportWizardProps) {
                   <tr>
                     <th className="px-4 py-3 text-left w-10">{t("colInclude")}</th>
                     <th className="px-4 py-3 text-left">{t("colName")}</th>
+                    <th className="px-4 py-3 text-left">{t("colFieldCode")}</th>
+                    <th className="px-4 py-3 text-left">{t("colAtak")}</th>
                     <th className="px-4 py-3 text-left">{t("colKaek")}</th>
                     <th className="px-4 py-3 text-right">{t("colArea")}</th>
                     <th className="px-4 py-3 text-left">{t("colType")}</th>
@@ -251,7 +256,13 @@ export default function ImportWizard({ locale }: ImportWizardProps) {
                         <p className="text-xs text-gray-400 mt-0.5">{field.municipality} · {field.prefecture}</p>
                       </td>
                       <td className="px-4 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">
-                        {field.kaek}
+                        {field.fieldNumber || "—"}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">
+                        {field.atak || "—"}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">
+                        {field.kaek || "—"}
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums">
                         {field.officialArea.toLocaleString("el-GR")}
