@@ -15,16 +15,25 @@ export default async function EditFieldPage({
   const session = await requireRole(locale, "LAND_OWNER");
   const t = await getTranslations();
 
-  const [field, leaseholders] = await Promise.all([
+  const [field, leaseholders, allFields] = await Promise.all([
     db.field.findUnique({ where: { id, ownerId: session.user.id } }),
     db.user.findMany({
       where: { roles: { has: "LEASEHOLDER" } },
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
+    db.field.findMany({
+      where: { ownerId: session.user.id },
+      select: { id: true },
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   if (!field) notFound();
+
+  const fieldIndex = allFields.findIndex((f) => f.id === id);
+  const prevId = fieldIndex > 0 ? allFields[fieldIndex - 1].id : null;
+  const nextId = fieldIndex < allFields.length - 1 ? allFields[fieldIndex + 1].id : null;
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
@@ -37,6 +46,10 @@ export default async function EditFieldPage({
       </div>
       <FieldForm
         leaseholders={leaseholders}
+        prevId={prevId}
+        nextId={nextId}
+        fieldIndex={fieldIndex}
+        totalFields={allFields.length}
         initial={{
           id: field.id,
           name: field.name,

@@ -27,6 +27,16 @@ enum CropType {
   CLOVER
 }
 
+enum CultivationType {
+  ANNUAL
+  PERENNIAL
+  OLIVE
+  OTHER_TREES
+  PASTURE
+  FOREST
+  OTHER
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -85,11 +95,14 @@ model VerificationToken {
 model Field {
   id               String   @id @default(cuid())
   name             String
-  fieldNumber      String?   // local village registry number, optional
+  fieldNumber      String?
+  atak             String?
   kaek             String
   officialArea     Float    // m² from land registry, manually entered
   calculatedArea   Float?   // m² auto-calculated from polygon
   polygon          Json?    // GeoJSON array of { lat, lng } vertices
+  cultivationType      CultivationType?
+  ownershipPercentage  Float?
   ownerId          String
   leaseholderId    String?
   createdAt        DateTime @default(now())
