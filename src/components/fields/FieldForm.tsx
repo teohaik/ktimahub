@@ -14,6 +14,10 @@ interface Leaseholder {
 
 interface FieldFormProps {
   leaseholders: Leaseholder[];
+  prevId?: string | null;
+  nextId?: string | null;
+  fieldIndex?: number;
+  totalFields?: number;
   initial?: {
     id: string;
     name: string;
@@ -28,7 +32,7 @@ interface FieldFormProps {
 
 type PolygonMode = "draw" | "paste";
 
-export default function FieldForm({ leaseholders, initial }: FieldFormProps) {
+export default function FieldForm({ leaseholders, initial, prevId, nextId, fieldIndex, totalFields }: FieldFormProps) {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
@@ -170,9 +174,61 @@ export default function FieldForm({ leaseholders, initial }: FieldFormProps) {
     router.refresh();
   }
 
+  const ActionButtons = ({ compact }: { compact?: boolean }) => (
+    <div className={`flex gap-2 ${compact ? "" : ""}`}>
+      <button
+        type="button"
+        onClick={() => router.push(`/${locale}/fields`)}
+        className="px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+      >
+        {t("common.cancel")}
+      </button>
+      <button
+        type="submit"
+        disabled={saving}
+        className="px-5 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+      >
+        {saving ? "..." : t("common.save")}
+      </button>
+    </div>
+  );
+
   return (
     <>
     <form onSubmit={handleSubmit} className="space-y-6">
+
+      {/* Top action bar: navigation + save/cancel */}
+      {isEdit && (
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => prevId && router.push(`/${locale}/fields/${prevId}`)}
+              disabled={!prevId}
+              className="p-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              title={t("common.previous")}
+            >
+              <ChevronLeftIcon />
+            </button>
+            {totalFields != null && fieldIndex != null && (
+              <span className="text-sm text-gray-500 tabular-nums">
+                {fieldIndex + 1} / {totalFields}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => nextId && router.push(`/${locale}/fields/${nextId}`)}
+              disabled={!nextId}
+              className="p-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              title={t("common.next")}
+            >
+              <ChevronRightIcon />
+            </button>
+          </div>
+          <ActionButtons />
+        </div>
+      )}
+
       {/* Basic info */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
         <h2 className="font-semibold text-gray-900">
@@ -383,21 +439,8 @@ export default function FieldForm({ leaseholders, initial }: FieldFormProps) {
         </p>
       )}
 
-      <div className="flex gap-3 justify-end">
-        <button
-          type="button"
-          onClick={() => router.push(`/${locale}/fields`)}
-          className="px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          {t("common.cancel")}
-        </button>
-        <button
-          type="submit"
-          disabled={saving}
-          className="px-5 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
-        >
-          {saving ? "..." : t("common.save")}
-        </button>
+      <div className="flex justify-end">
+        <ActionButtons />
       </div>
     </form>
 
@@ -463,6 +506,22 @@ function FormField({
       </label>
       {children}
     </div>
+  );
+}
+
+function ChevronLeftIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
   );
 }
 
