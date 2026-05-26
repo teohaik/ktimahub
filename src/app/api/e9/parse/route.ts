@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import Anthropic from "@anthropic-ai/sdk";
 
 export interface E9ParsedField {
+  atak: string;
   kaek: string;
   name: string;
   fieldNumber: string;
@@ -52,6 +53,7 @@ export async function POST(req: Request) {
                 items: {
                   type: "object",
                   properties: {
+                    atak: { type: "string" },
                     kaek: { type: "string" },
                     name: { type: "string" },
                     fieldNumber: { type: "string" },
@@ -63,7 +65,7 @@ export async function POST(req: Request) {
                     ownershipPercentage: { type: "number" },
                     irrigated: { type: "boolean" },
                   },
-                  required: ["kaek","name","fieldNumber","municipality","district","prefecture","officialArea","cultivationType","ownershipPercentage","irrigated"],
+                  required: ["atak","kaek","name","fieldNumber","municipality","district","prefecture","officialArea","cultivationType","ownershipPercentage","irrigated"],
                 },
               },
             },
@@ -87,7 +89,15 @@ export async function POST(req: Request) {
 Find the table called "ΠΙΝΑΚΑΣ 2: ΣΤΟΙΧΕΙΑ ΓΗΠΕΔΩΝ" (it may span multiple pages). Extract EVERY row from this table and call import_fields.
 
 Each row in ΠΙΝΑΚΑΣ 2 represents one agricultural land parcel and contains:
-- Κ.Α.Ε.Κ. (KAEK): the SECOND code column — the land registry ID. Both codes wrap across 2 lines in the PDF. ATAK (first column) wraps as 1 group per line e.g. "008546" / "89850" → total 2 groups. KAEK (second column) wraps as 2 groups per line e.g. "007650 390311" / "98089 204067" → total 4 groups joined as "007650 390311 98089 204067". Some parcels may have no KAEK assigned yet — in that case leave the kaek field as an empty string "".
+
+CRITICAL — two separate code columns appear side-by-side, both wrapping across 2 PDF lines:
+  Column 1 header "Α.Τ.Α.Κ." → put in "atak" field.
+    ATAK has exactly 2 numeric parts, one per wrapped line.
+    Example: line 1 = "008546", line 2 = "89850" → atak = "008546 89850"
+  Column 2 header "Κ.Α.Ε.Κ." → put in "kaek" field. NEVER mix ATAK digits into kaek.
+    KAEK has exactly 4 numeric parts, two per wrapped line.
+    Example: line 1 = "007650 390311", line 2 = "98089 204067" → kaek = "007650 390311 98089 204067"
+    If a parcel has no KAEK yet, kaek = "".
 - ΝΟΜΟΣ: prefecture e.g. "ΠΙΕΡΙΑΣ"
 - ΔΗΜΟΣ: municipality e.g. "ΜΕΘΩΝΗΣ"
 - ΔΗΜΟΤΙΚΟ ΔΙΑΜΕΡΙΣΜΑ: district e.g. "ΜΕΘΩΝΗΣ"
@@ -104,7 +114,7 @@ Each row in ΠΙΝΑΚΑΣ 2 represents one agricultural land parcel and contain
 - ΠΟΣΟΣΤΟ ΣΥΝΙΔΙΟΚΤΗΣΙΑΣ: ownership % e.g. "37,5" → 37.5 or "100" → 100.0
 - Η ΕΔΑΦΙΚΗ ΕΚΤΑΣΗ ΕΙΝΑΙ ΑΡΔΕΥΟΜΕΝΗ: irrigated "ΝΑΙ"=true / "ΟΧΙ"=false
 
-Example: ATAK "008546" / "89850" (ignore), KAEK "007650 390300" / "98097 201011" → "007650 390300 98097 201011", location "ΚΑΖΑΝΙΑ 316" → name "ΚΑΖΑΝΙΑ" + fieldNumber "316", ΠΙΕΡΙΑΣ, ΜΕΘΩΝΗΣ, area 4638.0, column 3 (OLIVE), ownership 100.0, not irrigated.
+Example row: atak="008546 89850", kaek="007650 390300 98097 201011", location "ΚΑΖΑΝΙΑ 316" → name="ΚΑΖΑΝΙΑ" fieldNumber="316", ΠΙΕΡΙΑΣ, ΜΕΘΩΝΗΣ, area=4638.0, column 3→OLIVE, ownership=100.0, irrigated=false.
 
 Extract ALL rows from ΠΙΝΑΚΑΣ 2 (there may be 10–50 rows across multiple pages). Call import_fields even if only some fields are partially readable.`,
             },
