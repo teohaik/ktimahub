@@ -30,6 +30,7 @@ export async function POST(req: Request) {
           kaek: f.kaek.replace(/\s+/g, "").slice(0, 50),
           officialArea: f.officialArea,
           cultivationType: f.cultivationType,
+          ownershipPercentage: f.ownershipPercentage,
           ownerId: session.user.id,
         },
       })

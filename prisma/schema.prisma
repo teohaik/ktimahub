@@ -101,7 +101,8 @@ model Field {
   officialArea     Float    // m² from land registry, manually entered
   calculatedArea   Float?   // m² auto-calculated from polygon
   polygon          Json?    // GeoJSON array of { lat, lng } vertices
-  cultivationType  CultivationType?
+  cultivationType      CultivationType?
+  ownershipPercentage  Float?
   ownerId          String
   leaseholderId    String?
   createdAt        DateTime @default(now())
