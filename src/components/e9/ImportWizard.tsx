@@ -60,12 +60,12 @@ export default function ImportWizard({ locale }: ImportWizardProps) {
         return;
       }
 
-      const normalize = (s?: string) => s?.trim().replace(/\s+/g, " ") ?? "";
+      const normalizeCode = (s?: string) => s?.replace(/\s+/g, "") ?? "";
       setFields(
         data.fields.map((f: E9ParsedField) => ({
           ...f,
-          atak: normalize(f.atak),
-          kaek: normalize(f.kaek),
+          atak: normalizeCode(f.atak),
+          kaek: normalizeCode(f.kaek),
           included: true,
           editedName: f.name,
         }))
