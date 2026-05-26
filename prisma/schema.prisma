@@ -95,7 +95,8 @@ model VerificationToken {
 model Field {
   id               String   @id @default(cuid())
   name             String
-  fieldNumber      String?   // local village registry number, optional
+  fieldNumber      String?
+  atak             String?
   kaek             String
   officialArea     Float    // m² from land registry, manually entered
   calculatedArea   Float?   // m² auto-calculated from polygon

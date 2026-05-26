@@ -26,6 +26,7 @@ export async function POST(req: Request) {
         data: {
           name: f.name.trim().slice(0, 255) || "Αγροτεμάχιο",
           fieldNumber: f.fieldNumber?.trim().slice(0, 50) || null,
+          atak: f.atak?.trim().slice(0, 50) || null,
           kaek: f.kaek.trim().slice(0, 50),
           officialArea: f.officialArea,
           cultivationType: f.cultivationType,
