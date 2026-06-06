@@ -57,7 +57,8 @@ test.describe("Crop History — owner view", () => {
 
   test("table renders field rows", async ({ page }) => {
     await page.goto("/el/crop-history");
-    await expect(page.locator("table tbody tr, .sm\\:hidden > div").first()).toBeVisible({ timeout: 10000 });
+    // Desktop table row — CI runs on Desktop Chrome so the desktop table is the visible one
+    await expect(page.locator("table tbody tr").first()).toBeVisible({ timeout: 10000 });
   });
 
   test("edit button is visible and enables edit mode", async ({ page }) => {
@@ -89,9 +90,6 @@ test.describe("Crop History — owner view", () => {
     await page.goto("/el/crop-history");
     await page.getByRole("button", { name: /επεξεργασία|edit/i }).click({ timeout: 10000 });
 
-    // Pick the first crop select (in the table) and choose any non-empty option
-    const cropSelects = page.locator("table select, .sm\\:hidden select").filter({ hasNot: page.locator("option[value='']:not([value=''])") });
-    // Use the first visible select that has options
     const firstCropSelect = page.locator("table tbody tr").first().locator("select").first();
     await expect(firstCropSelect).toBeVisible({ timeout: 10000 });
 
@@ -110,14 +108,14 @@ test.describe("Crop History — owner view", () => {
 
   test("changing year fetches new data", async ({ page }) => {
     await page.goto("/el/crop-history");
-    await expect(page.locator("table, .sm\\:hidden").first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator("table").first()).toBeVisible({ timeout: 10000 });
 
     const select = page.locator("select").first();
     const otherYear = CURRENT_YEAR + 1;
     await select.selectOption(String(otherYear));
 
-    // Table remains visible (may be empty, but no crash)
-    await expect(page.locator("table, .sm\\:hidden").first()).toBeVisible({ timeout: 10000 });
+    // Table remains visible after year change (may be empty, but no crash)
+    await expect(page.locator("table").first()).toBeVisible({ timeout: 10000 });
   });
 
   test("values persist after page reload", async ({ page }) => {
