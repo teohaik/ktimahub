@@ -6,8 +6,10 @@ const CROP_EL_EDITED = `${CROP_EL} (επεξ)`;
 const CROP_EN_EDITED = `${CROP_EN} (edited)`;
 
 test.describe("Admin — Crop Types page", () => {
+  // This block must run without the admin session to test the auth guard.
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test("redirects non-admin to home", async ({ page }) => {
-    // unauthenticated access should redirect to login
     await page.goto("/el/crops");
     await expect(page).toHaveURL(/\/login/, { timeout: 10000 });
   });
