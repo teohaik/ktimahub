@@ -12,6 +12,7 @@ interface Field {
   kaek: string;
   officialArea: number;
   calculatedArea: number | null;
+  ownershipPercentage: number | null;
   leaseholder: { id: string; name: string | null } | null;
 }
 
@@ -30,6 +31,11 @@ export default function FieldsTable({ fields, locale }: Props) {
   const [rows, setRows] = useState(fields);
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [ownershipFilter, setOwnershipFilter] = useState<number | null>(null);
+
+  const ownershipOptions = Array.from(
+    new Set(rows.map((f) => f.ownershipPercentage).filter((p): p is number => p != null))
+  ).sort((a, b) => a - b);
 
   function handleSort(key: SortKey) {
     if (key === sortKey) {
@@ -40,7 +46,11 @@ export default function FieldsTable({ fields, locale }: Props) {
     }
   }
 
-  const sorted = [...rows].sort((a, b) => {
+  const filtered = ownershipFilter == null
+    ? rows
+    : rows.filter((f) => f.ownershipPercentage === ownershipFilter);
+
+  const sorted = [...filtered].sort((a, b) => {
     let cmp = 0;
     if (sortKey === "name") cmp = a.name.localeCompare(b.name, "el");
     else if (sortKey === "officialArea") cmp = a.officialArea - b.officialArea;
@@ -61,9 +71,9 @@ export default function FieldsTable({ fields, locale }: Props) {
     return n.toLocaleString("el-GR", { maximumFractionDigits: 0 });
   }
 
-  const totalOfficial = rows.reduce((s, f) => s + f.officialArea, 0);
-  const totalCalculated = rows.reduce((s, f) => s + (f.calculatedArea ?? 0), 0);
-  const hasAnyCalculated = rows.some((f) => f.calculatedArea != null);
+  const totalOfficial = sorted.reduce((s, f) => s + f.officialArea, 0);
+  const totalCalculated = sorted.reduce((s, f) => s + (f.calculatedArea ?? 0), 0);
+  const hasAnyCalculated = sorted.some((f) => f.calculatedArea != null);
 
   if (rows.length === 0) {
     return (
@@ -75,6 +85,28 @@ export default function FieldsTable({ fields, locale }: Props) {
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      {/* Ownership filter */}
+      {ownershipOptions.length > 1 && (
+        <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-medium text-gray-500">{t("fields.filterOwnership")}:</span>
+          <button
+            onClick={() => setOwnershipFilter(null)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${ownershipFilter == null ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+          >
+            {t("fields.filterAll")}
+          </button>
+          {ownershipOptions.map((pct) => (
+            <button
+              key={pct}
+              onClick={() => setOwnershipFilter(ownershipFilter === pct ? null : pct)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${ownershipFilter === pct ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+            >
+              {pct}%
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Mobile cards */}
       <div className="sm:hidden divide-y divide-gray-100">
         {sorted.map((f, i) => (
@@ -94,6 +126,9 @@ export default function FieldsTable({ fields, locale }: Props) {
             <div className="grid grid-cols-2 gap-x-4 text-sm text-gray-600">
               <span>{t("fields.officialArea")}: {fmt(f.officialArea)}</span>
               <span>{t("fields.calculatedArea")}: {fmt(f.calculatedArea)}</span>
+              {f.ownershipPercentage != null && (
+                <span>{t("fields.ownership")}: {f.ownershipPercentage}%</span>
+              )}
             </div>
             <p className="text-sm text-gray-600">
               {t("fields.leaseholder")}: {f.leaseholder?.name ?? t("fields.noLeaseholder")}
@@ -145,6 +180,7 @@ export default function FieldsTable({ fields, locale }: Props) {
               <th className="px-4 py-3 font-semibold text-right">
                 <SortHeader label={t("fields.calculatedArea")} col="calculatedArea" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
               </th>
+              <th className="px-4 py-3 font-semibold text-right">{t("fields.ownership")}</th>
               <th className="px-4 py-3 font-semibold">{t("fields.leaseholder")}</th>
               <th className="px-4 py-3 font-semibold">{t("common.actions")}</th>
             </tr>
@@ -165,6 +201,9 @@ export default function FieldsTable({ fields, locale }: Props) {
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums text-gray-700">
                   {fmt(f.calculatedArea)}
+                </td>
+                <td className="px-4 py-3 text-right tabular-nums text-gray-700">
+                  {f.ownershipPercentage != null ? `${f.ownershipPercentage}%` : "—"}
                 </td>
                 <td className="px-4 py-3 text-gray-600">
                   {f.leaseholder?.name ?? (
@@ -209,7 +248,7 @@ export default function FieldsTable({ fields, locale }: Props) {
               <td className="px-4 py-3 text-right tabular-nums">
                 {hasAnyCalculated ? fmt(totalCalculated) : "—"}
               </td>
-              <td colSpan={2} />
+              <td colSpan={3} />
             </tr>
           </tfoot>
         </table>
