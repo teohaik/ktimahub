@@ -94,7 +94,8 @@ model VerificationToken {
 
 model Crop {
   id        String   @id @default(cuid())
-  name      String   @unique
+  nameEl    String   @unique
+  nameEn    String   @unique
   createdAt DateTime @default(now())
   fields    Field[]
 }

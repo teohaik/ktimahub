@@ -24,12 +24,16 @@ export default defineConfig({
       name: "leaseholder-setup",
       testMatch: /leaseholder\.setup\.ts/,
     },
+    {
+      name: "admin-setup",
+      testMatch: /admin\.setup\.ts/,
+    },
 
     // Unauthenticated tests — no setup dependency
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
-      testIgnore: /.*\.(owner|leaseholder)\.spec\.ts|mobile\.spec\.ts/,
+      testIgnore: /.*\.(owner|leaseholder|admin)\.spec\.ts|mobile\.spec\.ts/,
     },
     // Mobile runs only the dedicated mobile spec (Pixel 5 = Chromium-based, touch enabled)
     {
@@ -58,6 +62,17 @@ export default defineConfig({
       },
       testMatch: /.*\.leaseholder\.spec\.ts/,
       dependencies: ["leaseholder-setup"],
+    },
+
+    // Authenticated admin tests
+    {
+      name: "admin",
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: ".playwright/admin.json",
+      },
+      testMatch: /.*\.admin\.spec\.ts/,
+      dependencies: ["admin-setup"],
     },
   ],
 });

@@ -65,6 +65,8 @@ jobs:
           TEST_OWNER_PASSWORD: ${{ secrets.TEST_OWNER_PASSWORD }}
           TEST_LEASEHOLDER_EMAIL: ${{ secrets.TEST_LEASEHOLDER_EMAIL }}
           TEST_LEASEHOLDER_PASSWORD: ${{ secrets.TEST_LEASEHOLDER_PASSWORD }}
+          TEST_ADMIN_EMAIL: ${{ secrets.TEST_ADMIN_EMAIL }}
+          TEST_ADMIN_PASSWORD: ${{ secrets.TEST_ADMIN_PASSWORD }}
 
       - name: Upload test report
         uses: actions/upload-artifact@v4

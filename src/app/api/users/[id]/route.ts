@@ -16,6 +16,11 @@ export async function PUT(req: Request, { params }: Params) {
   const body = await req.json();
   const { name, email, password, role } = body;
 
+  const validRoles: Role[] = ["LAND_OWNER", "LEASEHOLDER", "SUPER_ADMIN"];
+  if (!name || !email || !validRoles.includes(role)) {
+    return NextResponse.json({ error: "name, email and valid role are required" }, { status: 400 });
+  }
+
   const data: Record<string, unknown> = { name, email, roles: [role as Role] };
   if (password) {
     data.password = await bcrypt.hash(password, 12);

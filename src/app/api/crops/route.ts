@@ -22,6 +22,9 @@ export async function POST(req: Request) {
   }
 
   const role = session.user.activeRole;
+  if (role !== "LEASEHOLDER" && role !== "LAND_OWNER") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   if (role === "LEASEHOLDER" && field.leaseholderId !== session.user.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
