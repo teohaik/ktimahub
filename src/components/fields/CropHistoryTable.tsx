@@ -150,6 +150,15 @@ export default function CropHistoryTable({ initialRows, crops, leaseholders, ini
         <div className="flex items-center gap-2">
           {editMode ? (
             <>
+              {year > START_YEAR && (
+                <button
+                  onClick={handleCopyFromPrevYear}
+                  disabled={saving || copying}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                >
+                  {copying ? t("copying") : t("copyFromYear", { year: year - 1 })}
+                </button>
+              )}
               <button
                 onClick={handleCancel}
                 disabled={saving}
@@ -166,24 +175,13 @@ export default function CropHistoryTable({ initialRows, crops, leaseholders, ini
               </button>
             </>
           ) : (
-            <>
-              {year > START_YEAR && (
-                <button
-                  onClick={handleCopyFromPrevYear}
-                  disabled={loading || copying}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
-                >
-                  {copying ? t("copying") : t("copyFromYear", { year: year - 1 })}
-                </button>
-              )}
-              <button
-                onClick={handleEdit}
-                disabled={loading}
-                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
-              >
-                {t("edit")}
-              </button>
-            </>
+            <button
+              onClick={handleEdit}
+              disabled={loading}
+              className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+            >
+              {t("edit")}
+            </button>
           )}
         </div>
       </div>

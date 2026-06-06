@@ -106,19 +106,25 @@ test.describe("Crop History — owner view", () => {
     await expect(page.getByRole("button", { name: /επεξεργασία|edit/i })).toBeVisible({ timeout: 10000 });
   });
 
-  test("copy from previous year button enters edit mode with pre-filled values", async ({ page }) => {
-    // Navigate to year+1 so "copy from year" button is visible
+  test("copy from previous year button is visible in edit mode and pre-fills values", async ({ page }) => {
+    // Navigate to year+1 so "copy from year" button is available
     await page.goto("/el/crop-history");
     await page.locator("select").first().selectOption(String(CURRENT_YEAR + 1));
     await expect(page.locator("table").first()).toBeVisible({ timeout: 10000 });
 
-    const copyBtn = page.getByRole("button", { name: new RegExp(`αντιγραφή από ${CURRENT_YEAR}|copy from ${CURRENT_YEAR}`, "i") });
+    // Copy button should NOT be visible before entering edit mode
+    await expect(page.getByRole("button", { name: /αντιγραφή από|copy from/i })).not.toBeVisible();
+
+    // Enter edit mode
+    await page.getByRole("button", { name: /επεξεργασία|edit/i }).click();
+
+    // Now copy button should appear
+    const copyBtn = page.getByRole("button", { name: /αντιγραφή από|copy from/i });
     await expect(copyBtn).toBeVisible({ timeout: 5000 });
     await copyBtn.click();
 
-    // Should enter edit mode
+    // Still in edit mode after copy
     await expect(page.getByRole("button", { name: /αποθήκευση|save/i })).toBeVisible({ timeout: 10000 });
-    await expect(page.getByRole("button", { name: /ακύρωση|cancel/i })).toBeVisible();
 
     // Cancel without saving
     await page.getByRole("button", { name: /ακύρωση|cancel/i }).click();
@@ -128,7 +134,10 @@ test.describe("Crop History — owner view", () => {
     await page.goto("/el/crop-history");
     await page.locator("select").first().selectOption("2025");
     await expect(page.locator("table").first()).toBeVisible({ timeout: 10000 });
+    // Enter edit mode — copy button still should not appear for 2025
+    await page.getByRole("button", { name: /επεξεργασία|edit/i }).click();
     await expect(page.getByRole("button", { name: /αντιγραφή από|copy from/i })).not.toBeVisible();
+    await page.getByRole("button", { name: /ακύρωση|cancel/i }).click();
   });
 
   test("changing year fetches new data", async ({ page }) => {
