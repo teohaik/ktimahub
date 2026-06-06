@@ -5,6 +5,11 @@ import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+interface CropOption {
+  id: string;
+  name: string;
+}
+
 interface Field {
   id: string;
   name: string;
@@ -13,22 +18,40 @@ interface Field {
   officialArea: number;
   calculatedArea: number | null;
   ownershipPercentage: number | null;
+  cropId: string | null;
+  crop: CropOption | null;
   leaseholder: { id: string; name: string | null } | null;
 }
 
 interface Props {
   fields: Field[];
+  crops: CropOption[];
   locale: string;
 }
 
 type SortKey = "name" | "officialArea" | "calculatedArea";
 type SortDir = "asc" | "desc";
 
-export default function FieldsTable({ fields, locale }: Props) {
+export default function FieldsTable({ fields, crops, locale }: Props) {
   const t = useTranslations();
   const router = useRouter();
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [savingCrop, setSavingCrop] = useState<string | null>(null);
   const [rows, setRows] = useState(fields);
+
+  async function handleCropChange(fieldId: string, cropId: string) {
+    setSavingCrop(fieldId);
+    const res = await fetch(`/api/fields/${fieldId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cropId: cropId || null }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      setRows((prev) => prev.map((f) => f.id === fieldId ? { ...f, cropId: updated.cropId, crop: updated.crop } : f));
+    }
+    setSavingCrop(null);
+  }
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [ownershipFilter, setOwnershipFilter] = useState<number | null>(null);
@@ -130,6 +153,9 @@ export default function FieldsTable({ fields, locale }: Props) {
                 <span>{t("fields.ownership")}: {f.ownershipPercentage}%</span>
               )}
             </div>
+            {f.crop && (
+              <p className="text-sm text-gray-600">{t("fields.crop")}: {f.crop.name}</p>
+            )}
             <p className="text-sm text-gray-600">
               {t("fields.leaseholder")}: {f.leaseholder?.name ?? t("fields.noLeaseholder")}
             </p>
@@ -181,6 +207,7 @@ export default function FieldsTable({ fields, locale }: Props) {
                 <SortHeader label={t("fields.calculatedArea")} col="calculatedArea" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
               </th>
               <th className="px-4 py-3 font-semibold text-right">{t("fields.ownership")}</th>
+              <th className="px-4 py-3 font-semibold">{t("fields.crop")}</th>
               <th className="px-4 py-3 font-semibold">{t("fields.leaseholder")}</th>
               <th className="px-4 py-3 font-semibold">{t("common.actions")}</th>
             </tr>
@@ -204,6 +231,19 @@ export default function FieldsTable({ fields, locale }: Props) {
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums text-gray-700">
                   {f.ownershipPercentage != null ? `${f.ownershipPercentage}%` : "—"}
+                </td>
+                <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                  <select
+                    value={f.cropId ?? ""}
+                    onChange={(e) => handleCropChange(f.id, e.target.value)}
+                    disabled={savingCrop === f.id}
+                    className="text-sm border border-gray-200 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 bg-white min-w-[120px]"
+                  >
+                    <option value="">{t("fields.noCrop")}</option>
+                    {crops.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
                 </td>
                 <td className="px-4 py-3 text-gray-600">
                   {f.leaseholder?.name ?? (
@@ -248,7 +288,7 @@ export default function FieldsTable({ fields, locale }: Props) {
               <td className="px-4 py-3 text-right tabular-nums">
                 {hasAnyCalculated ? fmt(totalCalculated) : "—"}
               </td>
-              <td colSpan={3} />
+              <td colSpan={4} />
             </tr>
           </tfoot>
         </table>

@@ -57,6 +57,7 @@
     "fields": "Fields",
     "map": "Map",
     "users": "Users",
+    "crops": "Crop Types",
     "myFields": "My Fields"
   },
   "fields": {
@@ -64,6 +65,8 @@
     "addField": "Add field",
     "total": "Total",
     "ownership": "Ownership",
+    "crop": "Crop",
+    "noCrop": "—",
     "filterOwnership": "Filter by ownership",
     "filterAll": "All",
     "editField": "Edit field",
@@ -214,5 +217,16 @@
     "invalidToken": "This invitation link is invalid or has expired.",
     "alreadyUsed": "This invitation has already been used.",
     "contactAdmin": "Please contact your administrator for a new invitation."
+  },
+  "crops": {
+    "title": "Crop Types",
+    "add": "Add",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "empty": "No crop types defined yet.",
+    "namePlaceholder": "Crop type name…",
+    "confirmDelete": "Delete this crop type?"
   }
 }

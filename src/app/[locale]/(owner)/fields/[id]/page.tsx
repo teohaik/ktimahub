@@ -15,7 +15,7 @@ export default async function EditFieldPage({
   const session = await requireRole(locale, "LAND_OWNER");
   const t = await getTranslations();
 
-  const [field, leaseholders, allFields] = await Promise.all([
+  const [field, leaseholders, allFields, crops] = await Promise.all([
     db.field.findUnique({ where: { id, ownerId: session.user.id } }),
     db.user.findMany({
       where: { roles: { has: "LEASEHOLDER" } },
@@ -27,6 +27,7 @@ export default async function EditFieldPage({
       select: { id: true },
       orderBy: { name: "asc" },
     }),
+    db.crop.findMany({ orderBy: { name: "asc" } }),
   ]);
 
   if (!field) notFound();
@@ -46,6 +47,7 @@ export default async function EditFieldPage({
       </div>
       <FieldForm
         leaseholders={leaseholders}
+        crops={crops}
         prevId={prevId}
         nextId={nextId}
         fieldIndex={fieldIndex}
@@ -59,6 +61,7 @@ export default async function EditFieldPage({
           calculatedArea: field.calculatedArea,
           polygon: (field.polygon as LatLng[] | null) ?? null,
           leaseholderId: field.leaseholderId,
+          cropId: field.cropId,
         }}
       />
     </div>

@@ -92,6 +92,13 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model Crop {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  fields    Field[]
+}
+
 model Field {
   id               String   @id @default(cuid())
   name             String
@@ -103,6 +110,7 @@ model Field {
   polygon          Json?    // GeoJSON array of { lat, lng } vertices
   cultivationType      CultivationType?
   ownershipPercentage  Float?
+  cropId           String?
   ownerId          String
   leaseholderId    String?
   createdAt        DateTime @default(now())
@@ -110,6 +118,7 @@ model Field {
 
   owner        User          @relation("FieldOwner", fields: [ownerId], references: [id])
   leaseholder  User?         @relation("FieldLeaseholder", fields: [leaseholderId], references: [id])
+  crop         Crop?         @relation(fields: [cropId], references: [id])
   cropHistory  CropHistory[]
 }
 
