@@ -33,7 +33,7 @@ export async function PUT(req: Request, { params }: Params) {
 
   const { id } = await params;
   const body = await req.json();
-  const { name, fieldNumber, kaek, officialArea, polygon, leaseholderId } = body;
+  const { name, fieldNumber, kaek, officialArea, polygon, leaseholderId, cropId } = body;
 
   let parsedOfficialArea = 0;
   if (officialArea !== undefined && officialArea !== null) {
@@ -65,8 +65,12 @@ export async function PUT(req: Request, { params }: Params) {
       calculatedArea,
       polygon: polygon ?? undefined,
       leaseholderId: leaseholderId || null,
+      cropId: cropId || null,
     },
-    include: { leaseholder: { select: { id: true, name: true } } },
+    include: {
+      leaseholder: { select: { id: true, name: true } },
+      crop: { select: { id: true, name: true } },
+    },
   });
 
   return NextResponse.json(field);

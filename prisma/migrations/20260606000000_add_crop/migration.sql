@@ -1,0 +1,11 @@
+CREATE TABLE "Crop" (
+  "id"        TEXT NOT NULL,
+  "name"      TEXT NOT NULL,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Crop_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "Crop_name_key" ON "Crop"("name");
+
+ALTER TABLE "Field" ADD COLUMN "cropId" TEXT;
+ALTER TABLE "Field" ADD CONSTRAINT "Field_cropId_fkey"
+  FOREIGN KEY ("cropId") REFERENCES "Crop"("id") ON DELETE SET NULL ON UPDATE CASCADE;

@@ -12,8 +12,14 @@ interface Leaseholder {
   name: string | null;
 }
 
+interface CropOption {
+  id: string;
+  name: string;
+}
+
 interface FieldFormProps {
   leaseholders: Leaseholder[];
+  crops?: CropOption[];
   prevId?: string | null;
   nextId?: string | null;
   fieldIndex?: number;
@@ -27,12 +33,13 @@ interface FieldFormProps {
     calculatedArea: number | null;
     polygon: LatLng[] | null;
     leaseholderId: string | null;
+    cropId?: string | null;
   };
 }
 
 type PolygonMode = "draw" | "paste";
 
-export default function FieldForm({ leaseholders, initial, prevId, nextId, fieldIndex, totalFields }: FieldFormProps) {
+export default function FieldForm({ leaseholders, crops = [], initial, prevId, nextId, fieldIndex, totalFields }: FieldFormProps) {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
@@ -51,6 +58,7 @@ export default function FieldForm({ leaseholders, initial, prevId, nextId, field
   const [leaseholderId, setLeaseholderId] = useState(
     initial?.leaseholderId ?? ""
   );
+  const [cropId, setCropId] = useState(initial?.cropId ?? "");
 
   // Polygon state
   const [mode, setMode] = useState<PolygonMode>("draw");
@@ -151,6 +159,7 @@ export default function FieldForm({ leaseholders, initial, prevId, nextId, field
       officialArea,
       polygon: vertices.length >= 3 ? vertices : null,
       leaseholderId: leaseholderId || null,
+      cropId: cropId || null,
     };
 
     const res = await fetch(
@@ -299,6 +308,21 @@ export default function FieldForm({ leaseholders, initial, prevId, nextId, field
               ))}
             </select>
           </FormField>
+
+          {crops.length > 0 && (
+            <FormField label={t("fields.crop")}>
+              <select
+                value={cropId}
+                onChange={(e) => setCropId(e.target.value)}
+                className={inputCls}
+              >
+                <option value="">{t("fields.noCrop")}</option>
+                {crops.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </FormField>
+          )}
         </div>
       </div>
 

@@ -53,7 +53,10 @@ export default function Navbar({ role, userName }: NavbarProps) {
   }
 
   const navLinks: Record<Role, { href: string; label: string }[]> = {
-    SUPER_ADMIN: [{ href: `/${locale}/users`, label: t("nav.users") }],
+    SUPER_ADMIN: [
+      { href: `/${locale}/users`, label: t("nav.users") },
+      { href: `/${locale}/crops`, label: t("nav.crops") },
+    ],
     LAND_OWNER: [
       { href: `/${locale}/fields`, label: t("nav.fields") },
       { href: `/${locale}/map`, label: t("nav.map") },

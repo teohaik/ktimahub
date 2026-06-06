@@ -15,11 +15,17 @@ export default async function FieldsPage({
   const session = await requireRole(locale, "LAND_OWNER");
   const t = await getTranslations();
 
-  const fields = await db.field.findMany({
-    where: { ownerId: session.user.id },
-    include: { leaseholder: { select: { id: true, name: true } } },
-    orderBy: { name: "asc" },
-  });
+  const [fields, crops] = await Promise.all([
+    db.field.findMany({
+      where: { ownerId: session.user.id },
+      include: {
+        leaseholder: { select: { id: true, name: true } },
+        crop: { select: { id: true, name: true } },
+      },
+      orderBy: { name: "asc" },
+    }),
+    db.crop.findMany({ orderBy: { name: "asc" } }),
+  ]);
 
   return (
     <div className="space-y-4">
@@ -64,7 +70,7 @@ export default async function FieldsPage({
         </div>
       </div>
 
-      <FieldsTable fields={fields.map((f) => ({ ...f, fieldNumber: f.fieldNumber ?? null }))} locale={locale} />
+      <FieldsTable fields={fields.map((f) => ({ ...f, fieldNumber: f.fieldNumber ?? null }))} crops={crops} locale={locale} />
     </div>
   );
 }

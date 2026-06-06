@@ -13,11 +13,14 @@ export default async function NewFieldPage({
   await requireRole(locale, "LAND_OWNER");
   const t = await getTranslations();
 
-  const leaseholders = await db.user.findMany({
-    where: { roles: { has: "LEASEHOLDER" } },
-    select: { id: true, name: true },
-    orderBy: { name: "asc" },
-  });
+  const [leaseholders, crops] = await Promise.all([
+    db.user.findMany({
+      where: { roles: { has: "LEASEHOLDER" } },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    db.crop.findMany({ orderBy: { name: "asc" } }),
+  ]);
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
@@ -28,7 +31,7 @@ export default async function NewFieldPage({
         <span>/</span>
         <span className="text-gray-900">{t("fields.addField")}</span>
       </div>
-      <FieldForm leaseholders={leaseholders} />
+      <FieldForm leaseholders={leaseholders} crops={crops} />
     </div>
   );
 }
