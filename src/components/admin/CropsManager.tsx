@@ -66,12 +66,14 @@ export default function CropsManager({ initialCrops }: { initialCrops: Crop[] })
     if (res.ok) setCrops((prev) => prev.filter((c) => c.id !== id));
   }
 
+  const nameMismatch = (el: string, en: string) => el.trim() && en.trim() && el.trim() === en.trim();
+
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="space-y-6">
       {/* Add form */}
-      <form onSubmit={handleAdd} className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
-        <h2 className="text-sm font-semibold text-gray-700">{t("addTitle")}</h2>
-        <div className="flex gap-3">
+      <form onSubmit={handleAdd} className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+        <h2 className="text-sm font-semibold text-gray-700 mb-3">{t("addTitle")}</h2>
+        <div className="flex gap-3 items-end">
           <div className="flex-1 space-y-1">
             <label className="text-xs font-medium text-gray-500">{t("nameEl")}</label>
             <input
@@ -92,16 +94,17 @@ export default function CropsManager({ initialCrops }: { initialCrops: Crop[] })
               className={inputCls}
             />
           </div>
-        </div>
-        <div className="flex justify-end">
           <button
             type="submit"
             disabled={saving || !newEl.trim() || !newEn.trim()}
-            className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+            className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors whitespace-nowrap"
           >
             {t("add")}
           </button>
         </div>
+        {nameMismatch(newEl, newEn) && (
+          <p className="mt-2 text-xs text-amber-600">{t("namesSameWarning")}</p>
+        )}
       </form>
 
       {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
@@ -111,7 +114,7 @@ export default function CropsManager({ initialCrops }: { initialCrops: Crop[] })
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
             <tr>
-              <th className="px-4 py-3 text-left">{t("colId")}</th>
+              <th className="px-4 py-3 text-left w-24">{t("colId")}</th>
               <th className="px-4 py-3 text-left">{t("nameEl")}</th>
               <th className="px-4 py-3 text-left">{t("nameEn")}</th>
               <th className="px-4 py-3 text-left">{t("colActions")}</th>
@@ -125,7 +128,14 @@ export default function CropsManager({ initialCrops }: { initialCrops: Crop[] })
             )}
             {crops.map((crop) => (
               <tr key={crop.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-mono text-xs text-gray-400 whitespace-nowrap">{crop.id}</td>
+                {/* Truncated ID with full value in title tooltip */}
+                <td
+                  className="px-4 py-3 font-mono text-xs text-gray-400 whitespace-nowrap"
+                  title={crop.id}
+                  data-cropid={crop.id}
+                >
+                  {crop.id.slice(0, 8)}…
+                </td>
                 {editingId === crop.id ? (
                   <>
                     <td className="px-4 py-2">
@@ -160,7 +170,12 @@ export default function CropsManager({ initialCrops }: { initialCrops: Crop[] })
                   </>
                 ) : (
                   <>
-                    <td className="px-4 py-3 text-gray-900">{crop.nameEl}</td>
+                    <td className="px-4 py-3 text-gray-900">
+                      {crop.nameEl}
+                      {nameMismatch(crop.nameEl, crop.nameEn) && (
+                        <span className="ml-1 text-amber-500" title={t("namesSameWarning")}>⚠</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-gray-900">{crop.nameEn}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-3">

@@ -58,7 +58,7 @@ test.describe("Admin — Crop Types CRUD", () => {
     await expect(inputs.nth(1)).toHaveValue("");
   });
 
-  test("crop row shows a unique cuid ID", async ({ page }) => {
+  test("crop row shows a truncated cuid ID with full value in data attribute", async ({ page }) => {
     await page.goto("/el/crops");
     await page.waitForSelector("table tbody tr", { timeout: 10000 });
 
@@ -67,10 +67,13 @@ test.describe("Admin — Crop Types CRUD", () => {
     const count = await row.count();
     if (count === 0) test.skip();
 
-    // ID cell should look like a cuid (starts with 'c' and is long)
+    // Visible text is truncated (8 chars + ellipsis); full ID is in data-cropid
     const idCell = row.locator("td").first();
-    const idText = await idCell.innerText();
-    expect(idText).toMatch(/^c[a-z0-9]{20,}/);
+    const visibleText = await idCell.innerText();
+    expect(visibleText).toMatch(/^c[a-z0-9]{7}…$/);
+
+    const fullId = await idCell.getAttribute("data-cropid");
+    expect(fullId).toMatch(/^c[a-z0-9]{20,}/);
   });
 
   test("can edit a crop type", async ({ page }) => {

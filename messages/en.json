@@ -233,6 +233,7 @@
     "nameEnPlaceholder": "e.g. Wheat",
     "colId": "ID",
     "colActions": "Actions",
-    "confirmDelete": "Delete this crop type?"
+    "confirmDelete": "Delete this crop type?",
+    "namesSameWarning": "Greek and English names are identical — please provide a translation."
   }
 }
