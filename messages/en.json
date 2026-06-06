@@ -250,6 +250,8 @@
     "colLeaseholder": "Leaseholder",
     "noCrop": "No crop",
     "noLeaseholder": "No leaseholder",
-    "noFields": "No fields found."
+    "noFields": "No fields found.",
+    "copyFromYear": "Copy from {year}",
+    "copying": "Copying…"
   }
 }

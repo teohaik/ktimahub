@@ -43,6 +43,7 @@ export default function CropHistoryTable({ initialRows, crops, leaseholders, ini
   const [editMode, setEditMode] = useState(false);
   const [pending, setPending] = useState<Map<string, { cropId: string | null; leaseholderId: string | null }>>(new Map());
   const [saving, setSaving] = useState(false);
+  const [copying, setCopying] = useState(false);
 
   const fetchYear = useCallback(async (y: number) => {
     setLoading(true);
@@ -67,6 +68,28 @@ export default function CropHistoryTable({ initialRows, crops, leaseholders, ini
       initial.set(field.id, {
         cropId: yearRecord?.cropId ?? null,
         leaseholderId: yearRecord?.leaseholderId ?? null,
+      });
+    });
+    setPending(initial);
+    setEditMode(true);
+  }
+
+  async function handleCopyFromPrevYear() {
+    setCopying(true);
+    const res = await fetch(`/api/crop-history?year=${year - 1}`);
+    setCopying(false);
+    if (!res.ok) return;
+    const prevRows: FieldRow[] = await res.json();
+    const prevByField = Object.fromEntries(
+      prevRows.map(({ field, yearRecord }) => [field.id, yearRecord])
+    );
+    const initial = new Map<string, { cropId: string | null; leaseholderId: string | null }>();
+    rows.forEach(({ field, yearRecord }) => {
+      const prev = prevByField[field.id];
+      initial.set(field.id, {
+        // If current year already has a value keep it, otherwise copy from prev year
+        cropId: yearRecord?.cropId ?? prev?.cropId ?? null,
+        leaseholderId: yearRecord?.leaseholderId ?? prev?.leaseholderId ?? null,
       });
     });
     setPending(initial);
@@ -143,13 +166,24 @@ export default function CropHistoryTable({ initialRows, crops, leaseholders, ini
               </button>
             </>
           ) : (
-            <button
-              onClick={handleEdit}
-              disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
-            >
-              {t("edit")}
-            </button>
+            <>
+              {year > START_YEAR && (
+                <button
+                  onClick={handleCopyFromPrevYear}
+                  disabled={loading || copying}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                >
+                  {copying ? t("copying") : t("copyFromYear", { year: year - 1 })}
+                </button>
+              )}
+              <button
+                onClick={handleEdit}
+                disabled={loading}
+                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+              >
+                {t("edit")}
+              </button>
+            </>
           )}
         </div>
       </div>
