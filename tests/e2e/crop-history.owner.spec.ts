@@ -127,24 +127,21 @@ test.describe("Crop History — owner view", () => {
     await expect(cropSelect).toBeVisible({ timeout: 10000 });
 
     const options = await cropSelect.locator("option").all();
-    let savedValue = "";
+    let savedCropName = "";
     if (options.length > 1) {
-      savedValue = (await options[1].getAttribute("value")) ?? "";
-      if (savedValue) await cropSelect.selectOption(savedValue);
+      // Capture the label text before saving — after reload there are no <option> elements
+      savedCropName = (await options[1].textContent())?.trim() ?? "";
+      const val = await options[1].getAttribute("value");
+      if (val) await cropSelect.selectOption(val);
     }
 
     await page.getByRole("button", { name: /αποθήκευση|save/i }).click();
     await expect(page.getByRole("button", { name: /επεξεργασία|edit/i })).toBeVisible({ timeout: 10000 });
 
-    if (savedValue) {
-      // Reload and check value is still displayed
+    if (savedCropName) {
       await page.reload();
       await expect(page.locator("table tbody tr").first()).toBeVisible({ timeout: 10000 });
-      // The saved crop name should be visible somewhere in the first row
-      const cropName = await page.locator(`option[value="${savedValue}"]`).first().textContent();
-      if (cropName) {
-        await expect(page.locator("table tbody tr").first()).toContainText(cropName.trim());
-      }
+      await expect(page.locator("table tbody tr").first()).toContainText(savedCropName);
     }
   });
 });
