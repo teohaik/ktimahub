@@ -14,6 +14,20 @@ test.describe("Admin — Crop Types page", () => {
 });
 
 test.describe("Admin — Crop Types CRUD", () => {
+  // Best-effort cleanup: delete any test rows left over from this run,
+  // regardless of which individual tests passed or failed.
+  test.afterAll(async ({ request }) => {
+    const res = await request.get("/api/crop-types");
+    if (!res.ok()) return;
+    const crops: { id: string; nameEl: string }[] = await res.json();
+    const testNames = new Set([CROP_EL, CROP_EL_EDITED]);
+    await Promise.all(
+      crops
+        .filter((c) => testNames.has(c.nameEl))
+        .map((c) => request.delete(`/api/crop-types/${c.id}`))
+    );
+  });
+
   test("crops page is accessible from nav", async ({ page }) => {
     await page.goto("/el/users");
     await expect(page.getByRole("link", { name: /τύποι καλλιέργειας|crop types/i })).toBeVisible({ timeout: 10000 });
