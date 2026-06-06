@@ -59,6 +59,7 @@ export default function Navbar({ role, userName }: NavbarProps) {
     ],
     LAND_OWNER: [
       { href: `/${locale}/fields`, label: t("nav.fields") },
+      { href: `/${locale}/crop-history`, label: t("nav.cropHistory") },
       { href: `/${locale}/map`, label: t("nav.map") },
     ],
     LEASEHOLDER: [{ href: `/${locale}/my-fields`, label: t("nav.myFields") }],

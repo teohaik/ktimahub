@@ -26,33 +26,18 @@ interface Field {
 
 interface Props {
   fields: Field[];
-  crops: CropOption[];
+  crops?: CropOption[];
   locale: string;
 }
 
 type SortKey = "name" | "officialArea" | "calculatedArea";
 type SortDir = "asc" | "desc";
 
-export default function FieldsTable({ fields, crops, locale }: Props) {
+export default function FieldsTable({ fields, locale }: Props) {
   const t = useTranslations();
   const router = useRouter();
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [savingCrop, setSavingCrop] = useState<string | null>(null);
   const [rows, setRows] = useState(fields);
-
-  async function handleCropChange(fieldId: string, cropId: string) {
-    setSavingCrop(fieldId);
-    const res = await fetch(`/api/fields/${fieldId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cropId: cropId || null }),
-    });
-    if (res.ok) {
-      const updated = await res.json();
-      setRows((prev) => prev.map((f) => f.id === fieldId ? { ...f, cropId: updated.cropId, crop: updated.crop } : f));
-    }
-    setSavingCrop(null);
-  }
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [ownershipFilter, setOwnershipFilter] = useState<number | null>(null);
@@ -90,7 +75,7 @@ export default function FieldsTable({ fields, crops, locale }: Props) {
     setDeleting(null);
   }
 
-  const cropName = (c: CropOption) => locale.startsWith("el") ? c.nameEl : c.nameEn;
+  const cropName = (c: { nameEl: string; nameEn: string }) => locale.startsWith("el") ? c.nameEl : c.nameEn;
 
   function fmt(n: number | null | undefined) {
     if (n == null) return "—";
@@ -235,18 +220,10 @@ export default function FieldsTable({ fields, crops, locale }: Props) {
                 <td className="px-4 py-3 text-right tabular-nums text-gray-700">
                   {f.ownershipPercentage != null ? `${f.ownershipPercentage}%` : "—"}
                 </td>
-                <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                  <select
-                    value={f.cropId ?? ""}
-                    onChange={(e) => handleCropChange(f.id, e.target.value)}
-                    disabled={savingCrop === f.id}
-                    className="text-sm border border-gray-200 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 bg-white min-w-[120px]"
-                  >
-                    <option value="">{t("fields.noCrop")}</option>
-                    {crops.map((c) => (
-                      <option key={c.id} value={c.id}>{cropName(c)}</option>
-                    ))}
-                  </select>
+                <td className="px-4 py-3 text-gray-600">
+                  {f.crop ? cropName(f.crop) : (
+                    <span className="text-gray-400 italic text-xs">{t("fields.noCrop")}</span>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-gray-600">
                   {f.leaseholder?.name ?? (

@@ -8,7 +8,7 @@ type CropType = "WHEAT" | "BARLEY" | "COTTON" | "VETCH" | "CLOVER";
 interface CropHistory {
   id: string;
   year: number;
-  cropType: CropType;
+  cropType: CropType | null;
 }
 
 interface Field {
@@ -137,7 +137,7 @@ function FieldCard({
                 >
                   <p className="text-xs text-gray-500">{h.year}</p>
                   <p className="text-sm font-medium text-gray-800">
-                    {t(`crops.${h.cropType}`)}
+                    {h.cropType ? t(`crops.${h.cropType}`) : "—"}
                   </p>
                 </div>
               ))}
