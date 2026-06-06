@@ -69,7 +69,7 @@ export async function PUT(req: Request, { params }: Params) {
     },
     include: {
       leaseholder: { select: { id: true, name: true } },
-      crop: { select: { id: true, name: true } },
+      crop: { select: { id: true, nameEl: true, nameEn: true } },
     },
   });
 

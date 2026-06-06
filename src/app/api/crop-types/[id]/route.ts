@@ -10,12 +10,12 @@ export async function PUT(req: Request, { params }: Params) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await params;
-  const { name } = await req.json();
-  if (!name || typeof name !== "string" || !name.trim()) {
-    return NextResponse.json({ error: "Name required" }, { status: 400 });
+  const { nameEl, nameEn } = await req.json();
+  if (!nameEl?.trim() || !nameEn?.trim()) {
+    return NextResponse.json({ error: "Both Greek and English names required" }, { status: 400 });
   }
   try {
-    const crop = await db.crop.update({ where: { id }, data: { name: name.trim() } });
+    const crop = await db.crop.update({ where: { id }, data: { nameEl: nameEl.trim(), nameEn: nameEn.trim() } });
     return NextResponse.json(crop);
   } catch {
     return NextResponse.json({ error: "Name already exists" }, { status: 409 });

@@ -7,7 +7,8 @@ import { useRouter } from "next/navigation";
 
 interface CropOption {
   id: string;
-  name: string;
+  nameEl: string;
+  nameEn: string;
 }
 
 interface Field {
@@ -19,7 +20,7 @@ interface Field {
   calculatedArea: number | null;
   ownershipPercentage: number | null;
   cropId: string | null;
-  crop: CropOption | null;
+  crop: { id: string; nameEl: string; nameEn: string } | null;
   leaseholder: { id: string; name: string | null } | null;
 }
 
@@ -89,6 +90,8 @@ export default function FieldsTable({ fields, crops, locale }: Props) {
     setDeleting(null);
   }
 
+  const cropName = (c: CropOption) => locale.startsWith("el") ? c.nameEl : c.nameEn;
+
   function fmt(n: number | null | undefined) {
     if (n == null) return "—";
     return n.toLocaleString("el-GR", { maximumFractionDigits: 0 });
@@ -154,7 +157,7 @@ export default function FieldsTable({ fields, crops, locale }: Props) {
               )}
             </div>
             {f.crop && (
-              <p className="text-sm text-gray-600">{t("fields.crop")}: {f.crop.name}</p>
+              <p className="text-sm text-gray-600">{t("fields.crop")}: {locale.startsWith("el") ? f.crop.nameEl : f.crop.nameEn}</p>
             )}
             <p className="text-sm text-gray-600">
               {t("fields.leaseholder")}: {f.leaseholder?.name ?? t("fields.noLeaseholder")}
@@ -241,7 +244,7 @@ export default function FieldsTable({ fields, crops, locale }: Props) {
                   >
                     <option value="">{t("fields.noCrop")}</option>
                     {crops.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                      <option key={c.id} value={c.id}>{cropName(c)}</option>
                     ))}
                   </select>
                 </td>

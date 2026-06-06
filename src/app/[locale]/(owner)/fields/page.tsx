@@ -20,11 +20,11 @@ export default async function FieldsPage({
       where: { ownerId: session.user.id },
       include: {
         leaseholder: { select: { id: true, name: true } },
-        crop: { select: { id: true, name: true } },
+        crop: { select: { id: true, nameEl: true, nameEn: true } },
       },
       orderBy: { name: "asc" },
     }),
-    db.crop.findMany({ orderBy: { name: "asc" } }),
+    db.crop.findMany({ orderBy: { nameEl: "asc" } }),
   ]);
 
   return (

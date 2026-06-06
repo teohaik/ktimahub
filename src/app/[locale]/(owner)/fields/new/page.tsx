@@ -19,7 +19,7 @@ export default async function NewFieldPage({
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
-    db.crop.findMany({ orderBy: { name: "asc" } }),
+    db.crop.findMany({ orderBy: { nameEl: "asc" } }),
   ]);
 
   return (

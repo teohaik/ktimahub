@@ -220,13 +220,19 @@
   },
   "crops": {
     "title": "Crop Types",
+    "addTitle": "Add crop type",
     "add": "Add",
     "edit": "Edit",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
     "empty": "No crop types defined yet.",
-    "namePlaceholder": "Crop type name…",
+    "nameEl": "Greek name",
+    "nameEn": "English name",
+    "nameElPlaceholder": "e.g. Σιτάρι",
+    "nameEnPlaceholder": "e.g. Wheat",
+    "colId": "ID",
+    "colActions": "Actions",
     "confirmDelete": "Delete this crop type?"
   }
 }

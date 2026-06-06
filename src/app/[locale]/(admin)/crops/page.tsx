@@ -12,7 +12,7 @@ export default async function CropsPage({
   await requireRole(locale, "SUPER_ADMIN");
   const t = await getTranslations();
 
-  const crops = await db.crop.findMany({ orderBy: { name: "asc" } });
+  const crops = await db.crop.findMany({ orderBy: { nameEl: "asc" } });
 
   return (
     <div className="space-y-4">

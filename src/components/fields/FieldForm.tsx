@@ -14,7 +14,8 @@ interface Leaseholder {
 
 interface CropOption {
   id: string;
-  name: string;
+  nameEl: string;
+  nameEn: string;
 }
 
 interface FieldFormProps {
@@ -318,7 +319,7 @@ export default function FieldForm({ leaseholders, crops = [], initial, prevId, n
               >
                 <option value="">{t("fields.noCrop")}</option>
                 {crops.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                  <option key={c.id} value={c.id}>{locale === "el" ? c.nameEl : c.nameEn}</option>
                 ))}
               </select>
             </FormField>

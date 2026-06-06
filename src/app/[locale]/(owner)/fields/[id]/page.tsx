@@ -27,7 +27,7 @@ export default async function EditFieldPage({
       select: { id: true },
       orderBy: { name: "asc" },
     }),
-    db.crop.findMany({ orderBy: { name: "asc" } }),
+    db.crop.findMany({ orderBy: { nameEl: "asc" } }),
   ]);
 
   if (!field) notFound();
