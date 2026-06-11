@@ -49,11 +49,12 @@ model User {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  invites       Invite[]
-  ownedFields   Field[]   @relation("FieldOwner")
-  leasedFields  Field[]   @relation("FieldLeaseholder")
+  accounts         Account[]
+  sessions         Session[]
+  invites          Invite[]
+  ownedFields      Field[]        @relation("FieldOwner")
+  leasedFields     Field[]        @relation("FieldLeaseholder")
+  cropHistories    CropHistory[]  @relation("CropHistoryLeaseholder")
 }
 
 model Account {
@@ -93,11 +94,12 @@ model VerificationToken {
 }
 
 model Crop {
-  id        String   @id @default(cuid())
-  nameEl    String   @unique
-  nameEn    String   @unique
-  createdAt DateTime @default(now())
-  fields    Field[]
+  id            String        @id @default(cuid())
+  nameEl        String        @unique
+  nameEn        String        @unique
+  createdAt     DateTime      @default(now())
+  fields        Field[]
+  cropHistories CropHistory[] @relation("CropHistoryCrop")
 }
 
 model Field {
@@ -124,14 +126,18 @@ model Field {
 }
 
 model CropHistory {
-  id        String   @id @default(cuid())
-  fieldId   String
-  year      Int
-  cropType  CropType
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(cuid())
+  fieldId       String
+  year          Int
+  cropType      CropType? // kept nullable for backward compat with old enum data
+  cropId        String?
+  leaseholderId String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  field Field @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  field       Field @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  crop        Crop? @relation("CropHistoryCrop", fields: [cropId], references: [id], onDelete: SetNull)
+  leaseholder User? @relation("CropHistoryLeaseholder", fields: [leaseholderId], references: [id], onDelete: SetNull)
 
   @@unique([fieldId, year])
 }

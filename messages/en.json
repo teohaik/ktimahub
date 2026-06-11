@@ -55,6 +55,7 @@
   },
   "nav": {
     "fields": "Fields",
+    "cropHistory": "Annual Crops",
     "map": "Map",
     "users": "Users",
     "crops": "Crop Types",
@@ -235,5 +236,22 @@
     "colActions": "Actions",
     "confirmDelete": "Delete this crop type?",
     "namesSameWarning": "Greek and English names are identical — please provide a translation."
+  },
+  "cropHistory": {
+    "title": "Annual Crops",
+    "year": "Year",
+    "edit": "Edit",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "colField": "Field",
+    "colKaek": "KAEK",
+    "colCrop": "Crop Type",
+    "colLeaseholder": "Leaseholder",
+    "noCrop": "No crop",
+    "noLeaseholder": "No leaseholder",
+    "noFields": "No fields found.",
+    "copyFromYear": "Copy from {year}",
+    "copying": "Copying…"
   }
 }
