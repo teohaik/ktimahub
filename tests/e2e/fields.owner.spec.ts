@@ -37,7 +37,7 @@ test.describe("Owner — Fields table", () => {
     await expect(page.locator("th", { hasText: /εμβαδόν|area/i }).first()).toBeVisible();
   });
 
-  test("clicking a field row navigates to field detail", async ({ page }) => {
+  test("clicking a field name navigates to field detail", async ({ page }) => {
     await page.goto("/el/fields");
     await page.getByRole("link", { name: /προσθήκη αγροτεμαχίου|add field/i }).waitFor({ timeout: 10000 });
     const hasTable = await page.getByRole("table").isVisible().catch(() => false);
@@ -45,8 +45,23 @@ test.describe("Owner — Fields table", () => {
     const rows = page.getByRole("row").filter({ hasNot: page.getByRole("columnheader") });
     const count = await rows.count();
     if (count === 0) { test.skip(); }
-    await rows.first().click();
+    // Only the field name (4th column) links to the detail view — the row
+    // itself no longer navigates so ID columns stay selectable/copyable.
+    await rows.first().locator("td").nth(3).getByRole("link").click();
     await expect(page).toHaveURL(/\/el\/fields\//);
+  });
+
+  test("clicking the KAEK cell does not navigate", async ({ page }) => {
+    await page.goto("/el/fields");
+    await page.getByRole("link", { name: /προσθήκη αγροτεμαχίου|add field/i }).waitFor({ timeout: 10000 });
+    const hasTable = await page.getByRole("table").isVisible().catch(() => false);
+    if (!hasTable) { test.skip(); }
+    const rows = page.getByRole("row").filter({ hasNot: page.getByRole("columnheader") });
+    const count = await rows.count();
+    if (count === 0) { test.skip(); }
+    // KAEK cell (2nd column) holds no link — clicking must stay on the list.
+    await rows.first().locator("td").nth(1).click();
+    await expect(page).toHaveURL(/\/el\/fields$/);
   });
 });
 
