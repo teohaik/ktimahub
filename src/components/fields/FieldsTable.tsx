@@ -209,13 +209,19 @@ export default function FieldsTable({ fields, locale }: Props) {
             {sorted.map((f, i) => (
               <tr
                 key={f.id}
-                onClick={() => router.push(`/${locale}/fields/${f.id}`)}
-                className={`cursor-pointer hover:bg-green-50 transition-colors ${i % 2 === 1 ? "bg-gray-50/50" : ""}`}
+                className={`hover:bg-green-50 transition-colors ${i % 2 === 1 ? "bg-gray-50/50" : ""}`}
               >
                 <td className="px-4 py-3 text-gray-500 text-xs">{i + 1}</td>
-                <td className="px-4 py-3 font-mono text-xs text-gray-700">{f.kaek}</td>
-                <td className="px-4 py-3 font-mono text-xs text-gray-700">{f.atak ?? "—"}</td>
-                <td className="px-4 py-3 font-medium text-gray-900">{f.name}</td>
+                <td className="px-4 py-3 font-mono text-xs text-gray-700 select-all cursor-text">{f.kaek}</td>
+                <td className="px-4 py-3 font-mono text-xs text-gray-700 select-all cursor-text">{f.atak ?? "—"}</td>
+                <td className="px-4 py-3">
+                  <Link
+                    href={`/${locale}/fields/${f.id}`}
+                    className="font-medium text-gray-900 hover:text-green-700 hover:underline"
+                  >
+                    {f.name}
+                  </Link>
+                </td>
                 <td className="px-4 py-3 font-mono text-xs text-gray-700">{f.fieldNumber ?? "—"}</td>
                 <td className="px-4 py-3 text-right tabular-nums text-gray-700">
                   {fmt(f.officialArea)}

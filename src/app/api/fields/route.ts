@@ -26,13 +26,16 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { name, fieldNumber, kaek, officialArea, polygon, leaseholderId } = body;
+  const { name, fieldNumber, kaek, atak, officialArea, polygon, leaseholderId } = body;
 
   if (!name || typeof name !== "string" || name.trim().length === 0 || name.length > 255) {
     return NextResponse.json({ error: "Invalid name" }, { status: 400 });
   }
   if (!kaek || typeof kaek !== "string" || kaek.trim().length === 0 || kaek.length > 50) {
     return NextResponse.json({ error: "Invalid kaek" }, { status: 400 });
+  }
+  if (atak != null && (typeof atak !== "string" || atak.length > 50)) {
+    return NextResponse.json({ error: "Invalid atak" }, { status: 400 });
   }
   if (officialArea !== undefined && officialArea !== null) {
     const area = parseFloat(officialArea);
@@ -72,6 +75,7 @@ export async function POST(req: Request) {
       name: name.trim(),
       fieldNumber: fieldNumber || null,
       kaek: kaek.trim(),
+      atak: atak?.trim() || null,
       officialArea: officialArea != null ? parseFloat(officialArea) : 0,
       calculatedArea,
       polygon: polygon ?? undefined,

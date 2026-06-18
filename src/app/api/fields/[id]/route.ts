@@ -33,7 +33,11 @@ export async function PUT(req: Request, { params }: Params) {
 
   const { id } = await params;
   const body = await req.json();
-  const { name, fieldNumber, kaek, officialArea, polygon, leaseholderId, cropId } = body;
+  const { name, fieldNumber, kaek, atak, officialArea, polygon, leaseholderId, cropId } = body;
+
+  if (atak != null && (typeof atak !== "string" || atak.length > 50)) {
+    return NextResponse.json({ error: "Invalid atak" }, { status: 400 });
+  }
 
   let parsedOfficialArea = 0;
   if (officialArea !== undefined && officialArea !== null) {
@@ -61,6 +65,7 @@ export async function PUT(req: Request, { params }: Params) {
       name,
       fieldNumber: fieldNumber || null,
       kaek,
+      atak: atak?.trim() || null,
       officialArea: parsedOfficialArea,
       calculatedArea,
       polygon: polygon ?? undefined,

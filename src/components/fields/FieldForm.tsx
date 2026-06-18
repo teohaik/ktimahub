@@ -30,6 +30,7 @@ interface FieldFormProps {
     name: string;
     fieldNumber: string | null;
     kaek: string;
+    atak: string | null;
     officialArea: number;
     calculatedArea: number | null;
     polygon: LatLng[] | null;
@@ -50,6 +51,7 @@ export default function FieldForm({ leaseholders, crops = [], initial, prevId, n
   const [name, setName] = useState(initial?.name ?? "");
   const [fieldNumber, setFieldNumber] = useState(initial?.fieldNumber ?? "");
   const [kaek, setKaek] = useState(initial?.kaek ?? "");
+  const [atak, setAtak] = useState(initial?.atak ?? "");
   const [officialArea, setOfficialArea] = useState(
     initial?.officialArea?.toString() ?? ""
   );
@@ -157,6 +159,7 @@ export default function FieldForm({ leaseholders, crops = [], initial, prevId, n
       name,
       fieldNumber: fieldNumber || null,
       kaek,
+      atak: atak || null,
       officialArea,
       polygon: vertices.length >= 3 ? vertices : null,
       leaseholderId: leaseholderId || null,
@@ -271,6 +274,15 @@ export default function FieldForm({ leaseholders, crops = [], initial, prevId, n
               value={kaek}
               onChange={(e) => setKaek(e.target.value)}
               required
+              className={inputCls}
+            />
+          </FormField>
+
+          <FormField label={t("fields.atak")}>
+            <input
+              type="text"
+              value={atak}
+              onChange={(e) => setAtak(e.target.value)}
               className={inputCls}
             />
           </FormField>
