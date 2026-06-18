@@ -60,6 +60,7 @@ export default async function EditFieldPage({
           atak: field.atak ?? null,
           officialArea: field.officialArea,
           calculatedArea: field.calculatedArea,
+          ownershipPercentage: field.ownershipPercentage ?? null,
           polygon: (field.polygon as LatLng[] | null) ?? null,
           leaseholderId: field.leaseholderId,
           cropId: field.cropId,

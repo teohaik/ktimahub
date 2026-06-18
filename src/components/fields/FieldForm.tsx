@@ -33,6 +33,7 @@ interface FieldFormProps {
     atak: string | null;
     officialArea: number;
     calculatedArea: number | null;
+    ownershipPercentage: number | null;
     polygon: LatLng[] | null;
     leaseholderId: string | null;
     cropId?: string | null;
@@ -57,6 +58,9 @@ export default function FieldForm({ leaseholders, crops = [], initial, prevId, n
   );
   const [calculatedArea, setCalculatedArea] = useState(
     initial?.calculatedArea?.toFixed(0) ?? ""
+  );
+  const [ownershipPercentage, setOwnershipPercentage] = useState(
+    initial?.ownershipPercentage?.toString() ?? ""
   );
   const [leaseholderId, setLeaseholderId] = useState(
     initial?.leaseholderId ?? ""
@@ -161,6 +165,7 @@ export default function FieldForm({ leaseholders, crops = [], initial, prevId, n
       kaek,
       atak: atak || null,
       officialArea,
+      ownershipPercentage: ownershipPercentage === "" ? null : parseFloat(ownershipPercentage),
       polygon: vertices.length >= 3 ? vertices : null,
       leaseholderId: leaseholderId || null,
       cropId: cropId || null,
@@ -281,6 +286,7 @@ export default function FieldForm({ leaseholders, crops = [], initial, prevId, n
           <FormField label={t("fields.atak")}>
             <input
               type="text"
+              name="atak"
               value={atak}
               onChange={(e) => setAtak(e.target.value)}
               className={inputCls}
@@ -305,6 +311,24 @@ export default function FieldForm({ leaseholders, crops = [], initial, prevId, n
               readOnly
               className={`${inputCls} bg-gray-50 text-gray-500 cursor-not-allowed`}
             />
+          </FormField>
+
+          <FormField label={t("fields.ownership")}>
+            <div className="relative">
+              <input
+                type="number"
+                name="ownershipPercentage"
+                step="0.01"
+                min="0"
+                max="100"
+                value={ownershipPercentage}
+                onChange={(e) => setOwnershipPercentage(e.target.value)}
+                className={`${inputCls} pr-7`}
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 pointer-events-none">
+                %
+              </span>
+            </div>
           </FormField>
 
           <FormField label={t("fields.leaseholder")}>
