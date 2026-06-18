@@ -57,6 +57,7 @@ export default async function EditFieldPage({
           name: field.name,
           fieldNumber: field.fieldNumber ?? null,
           kaek: field.kaek,
+          atak: field.atak ?? null,
           officialArea: field.officialArea,
           calculatedArea: field.calculatedArea,
           polygon: (field.polygon as LatLng[] | null) ?? null,
