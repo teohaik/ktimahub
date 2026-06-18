@@ -16,6 +16,7 @@ interface Field {
   name: string;
   fieldNumber: string | null;
   kaek: string;
+  atak: string | null;
   officialArea: number;
   calculatedArea: number | null;
   ownershipPercentage: number | null;
@@ -127,6 +128,9 @@ export default function FieldsTable({ fields, locale }: Props) {
                 <p className="font-semibold text-gray-900">{f.name}</p>
                 <p className="text-xs text-gray-500">
                   {f.kaek}
+                  {f.atak && (
+                    <span className="ml-2 text-gray-400">· {t("fields.atak")}: {f.atak}</span>
+                  )}
                   {f.fieldNumber && (
                     <span className="ml-2 text-gray-400">· {t("fields.fieldNumber")}: {f.fieldNumber}</span>
                   )}
@@ -184,6 +188,7 @@ export default function FieldsTable({ fields, locale }: Props) {
             <tr className="bg-green-700 text-white text-left text-xs">
               <th className="px-4 py-3 font-semibold">{t("fields.fieldId")}</th>
               <th className="px-4 py-3 font-semibold">{t("fields.kaek")}</th>
+              <th className="px-4 py-3 font-semibold">{t("fields.atak")}</th>
               <th className="px-4 py-3 font-semibold">
                 <SortHeader label={t("fields.name")} col="name" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
               </th>
@@ -209,6 +214,7 @@ export default function FieldsTable({ fields, locale }: Props) {
               >
                 <td className="px-4 py-3 text-gray-500 text-xs">{i + 1}</td>
                 <td className="px-4 py-3 font-mono text-xs text-gray-700">{f.kaek}</td>
+                <td className="px-4 py-3 font-mono text-xs text-gray-700">{f.atak ?? "—"}</td>
                 <td className="px-4 py-3 font-medium text-gray-900">{f.name}</td>
                 <td className="px-4 py-3 font-mono text-xs text-gray-700">{f.fieldNumber ?? "—"}</td>
                 <td className="px-4 py-3 text-right tabular-nums text-gray-700">
@@ -261,7 +267,7 @@ export default function FieldsTable({ fields, locale }: Props) {
           </tbody>
           <tfoot>
             <tr className="bg-green-50 border-t-2 border-green-200 text-sm font-semibold text-gray-800">
-              <td className="px-4 py-3 text-xs text-gray-500" colSpan={4}>
+              <td className="px-4 py-3 text-xs text-gray-500" colSpan={5}>
                 {t("fields.total")} ({rows.length})
               </td>
               <td className="px-4 py-3 text-right tabular-nums">{fmt(totalOfficial)}</td>
