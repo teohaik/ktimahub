@@ -111,3 +111,112 @@ test.describe("Owner — Navigation", () => {
     await expect(page.getByRole("link", { name: /χάρτης|map/i })).toBeVisible();
   });
 });
+
+test.describe("Owner — Field detail edits", () => {
+  // Snapshot of the field we mutate, restored after the suite so we don't
+  // leave test values in the shared preview database.
+  let original: {
+    id: string;
+    name: string;
+    fieldNumber: string | null;
+    kaek: string;
+    atak: string | null;
+    officialArea: number;
+    ownershipPercentage: number | null;
+    polygon: unknown;
+    leaseholderId: string | null;
+    cropId: string | null;
+  } | null = null;
+
+  test.afterAll(async ({ request }) => {
+    if (!original) return;
+    await request.put(`/api/fields/${original.id}`, {
+      data: {
+        name: original.name,
+        fieldNumber: original.fieldNumber,
+        kaek: original.kaek,
+        atak: original.atak,
+        officialArea: original.officialArea,
+        ownershipPercentage: original.ownershipPercentage,
+        polygon: original.polygon,
+        leaseholderId: original.leaseholderId,
+        cropId: original.cropId,
+      },
+    });
+  });
+
+  test("detail form exposes ATAK and ownership inputs", async ({ page, request }) => {
+    const res = await request.get("/api/fields");
+    expect(res.ok()).toBeTruthy();
+    const fields = await res.json();
+    if (!fields.length) { test.skip(); }
+
+    await page.goto(`/el/fields/${fields[0].id}`);
+    await expect(page.locator('input[name="atak"]')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('input[name="ownershipPercentage"]')).toBeVisible();
+  });
+
+  test("editing ATAK and ownership percentage persists", async ({ page, request }) => {
+    const res = await request.get("/api/fields");
+    expect(res.ok()).toBeTruthy();
+    const fields = await res.json();
+    if (!fields.length) { test.skip(); }
+    // API returns fields sorted by name asc — same order as the table/form.
+    original = fields[0];
+
+    await page.goto(`/el/fields/${original!.id}`);
+
+    const atakInput = page.locator('input[name="atak"]');
+    const ownershipInput = page.locator('input[name="ownershipPercentage"]');
+    await expect(atakInput).toBeVisible({ timeout: 10000 });
+
+    const newAtak = `E2E-${Date.now()}`;
+    const newOwnership = "73";
+    await atakInput.fill(newAtak);
+    await ownershipInput.fill(newOwnership);
+
+    // There are Save buttons at the top and bottom of the form — use the first.
+    await page.getByRole("button", { name: /αποθήκευση|save/i }).first().click();
+
+    // Saving redirects back to the fields list.
+    await expect(page).toHaveURL(/\/el\/fields$/, { timeout: 10000 });
+
+    // Re-open the same field — the edited values must round-trip through the API.
+    await page.goto(`/el/fields/${original!.id}`);
+    await expect(page.locator('input[name="atak"]')).toHaveValue(newAtak, { timeout: 10000 });
+    await expect(page.locator('input[name="ownershipPercentage"]')).toHaveValue(newOwnership);
+
+    // The master table also reflects the new ATAK and ownership values.
+    // Locate the row by its detail link rather than assuming sort order.
+    await page.goto("/el/fields");
+    const row = page
+      .locator("tbody tr")
+      .filter({ has: page.locator(`a[href="/el/fields/${original!.id}"]`) });
+    // Columns: 0:#  1:kaek  2:atak  3:name  4:fieldNumber  5:officialArea
+    //          6:calculatedArea  7:ownership
+    await expect(row.locator("td").nth(2)).toHaveText(newAtak);
+    await expect(row.locator("td").nth(7)).toContainText(`${newOwnership}%`);
+  });
+
+  test("rejects ownership percentage above 100", async ({ request }) => {
+    const res = await request.get("/api/fields");
+    expect(res.ok()).toBeTruthy();
+    const fields = await res.json();
+    if (!fields.length) { test.skip(); }
+
+    const f = fields[0];
+    const bad = await request.put(`/api/fields/${f.id}`, {
+      data: {
+        name: f.name,
+        kaek: f.kaek,
+        atak: f.atak,
+        officialArea: f.officialArea,
+        ownershipPercentage: 150,
+        polygon: f.polygon,
+        leaseholderId: f.leaseholderId,
+        cropId: f.cropId,
+      },
+    });
+    expect(bad.status()).toBe(400);
+  });
+});

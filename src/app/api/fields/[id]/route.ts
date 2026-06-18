@@ -33,10 +33,18 @@ export async function PUT(req: Request, { params }: Params) {
 
   const { id } = await params;
   const body = await req.json();
-  const { name, fieldNumber, kaek, atak, officialArea, polygon, leaseholderId, cropId } = body;
+  const { name, fieldNumber, kaek, atak, officialArea, ownershipPercentage, polygon, leaseholderId, cropId } = body;
 
   if (atak != null && (typeof atak !== "string" || atak.length > 50)) {
     return NextResponse.json({ error: "Invalid atak" }, { status: 400 });
+  }
+
+  let parsedOwnership: number | null = null;
+  if (ownershipPercentage != null) {
+    parsedOwnership = parseFloat(ownershipPercentage);
+    if (isNaN(parsedOwnership) || parsedOwnership < 0 || parsedOwnership > 100) {
+      return NextResponse.json({ error: "Invalid ownershipPercentage" }, { status: 400 });
+    }
   }
 
   let parsedOfficialArea = 0;
@@ -67,6 +75,7 @@ export async function PUT(req: Request, { params }: Params) {
       kaek,
       atak: atak?.trim() || null,
       officialArea: parsedOfficialArea,
+      ownershipPercentage: parsedOwnership,
       calculatedArea,
       polygon: polygon ?? undefined,
       leaseholderId: leaseholderId || null,

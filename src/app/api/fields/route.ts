@@ -26,7 +26,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { name, fieldNumber, kaek, atak, officialArea, polygon, leaseholderId } = body;
+  const { name, fieldNumber, kaek, atak, officialArea, ownershipPercentage, polygon, leaseholderId } = body;
 
   if (!name || typeof name !== "string" || name.trim().length === 0 || name.length > 255) {
     return NextResponse.json({ error: "Invalid name" }, { status: 400 });
@@ -36,6 +36,13 @@ export async function POST(req: Request) {
   }
   if (atak != null && (typeof atak !== "string" || atak.length > 50)) {
     return NextResponse.json({ error: "Invalid atak" }, { status: 400 });
+  }
+  let parsedOwnership: number | null = null;
+  if (ownershipPercentage != null) {
+    parsedOwnership = parseFloat(ownershipPercentage);
+    if (isNaN(parsedOwnership) || parsedOwnership < 0 || parsedOwnership > 100) {
+      return NextResponse.json({ error: "Invalid ownershipPercentage" }, { status: 400 });
+    }
   }
   if (officialArea !== undefined && officialArea !== null) {
     const area = parseFloat(officialArea);
@@ -77,6 +84,7 @@ export async function POST(req: Request) {
       kaek: kaek.trim(),
       atak: atak?.trim() || null,
       officialArea: officialArea != null ? parseFloat(officialArea) : 0,
+      ownershipPercentage: parsedOwnership,
       calculatedArea,
       polygon: polygon ?? undefined,
       ownerId: session.user.id,
