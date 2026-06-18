@@ -192,8 +192,10 @@ test.describe("Owner — Field detail edits", () => {
     const row = page
       .locator("tbody tr")
       .filter({ has: page.locator(`a[href="/el/fields/${original!.id}"]`) });
+    // Columns: 0:#  1:kaek  2:atak  3:name  4:fieldNumber  5:officialArea
+    //          6:calculatedArea  7:ownership
     await expect(row.locator("td").nth(2)).toHaveText(newAtak);
-    await expect(row.locator("td").nth(6)).toContainText(`${newOwnership}%`);
+    await expect(row.locator("td").nth(7)).toContainText(`${newOwnership}%`);
   });
 
   test("rejects ownership percentage above 100", async ({ request }) => {
