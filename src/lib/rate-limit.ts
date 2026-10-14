@@ -30,6 +30,12 @@ export async function checkRateLimit(
 ): Promise<{ allowed: boolean }> {
   const limiter = limiters[scope];
   if (!limiter) return { allowed: true };
-  const { success } = await limiter.limit(key);
-  return { allowed: success };
+  // Fail open if Redis is unreachable — an outage of the limiter must not lock users out
+  try {
+    const { success } = await limiter.limit(key);
+    return { allowed: success };
+  } catch (err) {
+    console.error(`[rate-limit] ${scope} check failed, allowing request`, err);
+    return { allowed: true };
+  }
 }
