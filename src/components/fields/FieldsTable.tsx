@@ -83,6 +83,33 @@ export default function FieldsTable({ fields, locale }: Props) {
     return n.toLocaleString("el-GR", { maximumFractionDigits: 0 });
   }
 
+  // Exports exactly what the desktop table shows: current filter and sort order, no actions column.
+  // Semicolon delimiter + UTF-8 BOM so Greek-locale Excel opens it in columns with correct characters.
+  function handleExportCsv() {
+    const isEl = locale.startsWith("el");
+    const num = (n: number | null | undefined) =>
+      n == null ? "" : n.toLocaleString(isEl ? "el-GR" : "en-US", { maximumFractionDigits: 2, useGrouping: false });
+    const header = [
+      t("fields.fieldId"), t("fields.kaek"), t("fields.atak"), t("fields.name"), t("fields.fieldNumber"),
+      t("fields.officialArea"), t("fields.calculatedArea"), t("fields.ownership"), t("fields.crop"), t("fields.leaseholder"),
+    ];
+    const body = sorted.map((f, i) => [
+      String(i + 1), f.kaek, f.atak ?? "", f.name, f.fieldNumber ?? "",
+      num(f.officialArea), num(f.calculatedArea), num(f.ownershipPercentage),
+      f.crop ? cropName(f.crop) : "", f.leaseholder?.name ?? "",
+    ]);
+    const csv = [header, ...body]
+      .map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(";"))
+      .join("\r\n");
+
+    const url = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ktimahub-fields-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   const totalOfficial = sorted.reduce((s, f) => s + f.officialArea, 0);
   const totalCalculated = sorted.reduce((s, f) => s + (f.calculatedArea ?? 0), 0);
   const hasAnyCalculated = sorted.some((f) => f.calculatedArea != null);
@@ -97,27 +124,37 @@ export default function FieldsTable({ fields, locale }: Props) {
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      {/* Ownership filter */}
-      {ownershipOptions.length > 1 && (
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-medium text-gray-500">{t("fields.filterOwnership")}:</span>
-          <button
-            onClick={() => setOwnershipFilter(null)}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${ownershipFilter == null ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
-          >
-            {t("fields.filterAll")}
-          </button>
-          {ownershipOptions.map((pct) => (
+      {/* Toolbar: ownership filter + CSV export */}
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
+        {ownershipOptions.length > 1 && (
+          <>
+            <span className="text-xs font-medium text-gray-500">{t("fields.filterOwnership")}:</span>
             <button
-              key={pct}
-              onClick={() => setOwnershipFilter(ownershipFilter === pct ? null : pct)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${ownershipFilter === pct ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+              onClick={() => setOwnershipFilter(null)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${ownershipFilter == null ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
             >
-              {pct}%
+              {t("fields.filterAll")}
             </button>
-          ))}
-        </div>
-      )}
+            {ownershipOptions.map((pct) => (
+              <button
+                key={pct}
+                onClick={() => setOwnershipFilter(ownershipFilter === pct ? null : pct)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${ownershipFilter === pct ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+              >
+                {pct}%
+              </button>
+            ))}
+          </>
+        )}
+        <button
+          type="button"
+          onClick={handleExportCsv}
+          className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          <DownloadIcon />
+          {t("fields.exportCsv")}
+        </button>
+      </div>
 
       {/* Mobile cards */}
       <div className="sm:hidden divide-y divide-gray-100">
@@ -311,6 +348,16 @@ function SortHeader({
         {active ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}
       </span>
     </button>
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <path d="M12 15V3" />
+    </svg>
   );
 }
 
