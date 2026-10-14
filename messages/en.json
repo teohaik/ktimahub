@@ -70,6 +70,7 @@
     "noCrop": "—",
     "filterOwnership": "Filter by ownership",
     "filterAll": "All",
+    "exportCsv": "Export CSV",
     "editField": "Edit field",
     "fieldId": "ID",
     "fieldNumber": "Field No.",

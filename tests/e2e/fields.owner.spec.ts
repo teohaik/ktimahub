@@ -63,6 +63,32 @@ test.describe("Owner — Fields table", () => {
     await rows.first().locator("td").nth(1).click();
     await expect(page).toHaveURL(/\/el\/fields$/);
   });
+
+  test("export CSV downloads the visible table rows", async ({ page }) => {
+    await page.goto("/el/fields");
+    await page.getByRole("link", { name: /προσθήκη αγροτεμαχίου|add field/i }).waitFor({ timeout: 10000 });
+    const hasTable = await page.getByRole("table").isVisible().catch(() => false);
+    if (!hasTable) { test.skip(); }
+
+    const [download] = await Promise.all([
+      page.waitForEvent("download"),
+      page.getByRole("button", { name: /εξαγωγή csv|export csv/i }).click(),
+    ]);
+    expect(download.suggestedFilename()).toMatch(/^ktimahub-fields-\d{4}-\d{2}-\d{2}\.csv$/);
+
+    const stream = await download.createReadStream();
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) chunks.push(chunk as Buffer);
+    const content = Buffer.concat(chunks).toString("utf-8");
+
+    // BOM so Excel detects UTF-8 (Greek characters)
+    expect(content.charCodeAt(0)).toBe(0xfeff);
+    const lines = content.slice(1).split("\r\n");
+    expect(lines[0]).toMatch(/ΚΑΕΚ/i);
+    expect(lines[0]).not.toMatch(/ενέργειες/i);
+    const tableRowCount = await page.locator("tbody tr").count();
+    expect(lines.length - 1).toBe(tableRowCount);
+  });
 });
 
 test.describe("Owner — Add field form", () => {
