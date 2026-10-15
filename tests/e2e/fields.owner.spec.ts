@@ -89,6 +89,29 @@ test.describe("Owner — Fields table", () => {
     const tableRowCount = await page.locator("tbody tr").count();
     expect(lines.length - 1).toBe(tableRowCount);
   });
+
+  test("Land Registry action links to maps.ktimatologio.gr in a new tab", async ({ page }) => {
+    await page.goto("/el/fields");
+    await page.getByRole("link", { name: /προσθήκη αγροτεμαχίου|add field/i }).waitFor({ timeout: 10000 });
+    const hasTable = await page.getByRole("table").isVisible().catch(() => false);
+    if (!hasTable) { test.skip(); }
+
+    const registryLink = { name: /επίσημο κτηματολόγιο|land registry map/i };
+    // `has` is resolved relative to each row, so the inner locator must not start from the table
+    const rows = page.locator("tbody tr").filter({ has: page.getByRole("link", registryLink) });
+    if ((await rows.count()) === 0) { test.skip(); } // no field has a KAEK
+
+    // Check the link of a row against that row's own KAEK (2nd column)
+    const row = rows.first();
+    const kaek = ((await row.locator("td").nth(1).textContent()) ?? "").replace(/\s+/g, "");
+    const link = row.getByRole("link", registryLink);
+    await expect(link).toHaveAttribute("target", "_blank");
+    await expect(link).toHaveAttribute("rel", /noopener/);
+    const href = (await link.getAttribute("href")) ?? "";
+    expect(href).toMatch(/^https:\/\/maps\.ktimatologio\.gr\/\?locale=el#data_s=where:/);
+    expect(href).toContain(`KAEK%3D%27${encodeURIComponent(kaek)}%27`);
+    expect(href).toContain("zoom_to_selection=true");
+  });
 });
 
 test.describe("Owner — Add field form", () => {
