@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ktimatologioMapUrl } from "@/lib/ktimatologio";
 
 interface CropOption {
   id: string;
@@ -195,6 +196,16 @@ export default function FieldsTable({ fields, locale }: Props) {
               >
                 {t("common.showOnMap")}
               </Link>
+              {ktimatologioMapUrl(f.kaek) && (
+                <a
+                  href={ktimatologioMapUrl(f.kaek)!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-teal-700 hover:underline"
+                >
+                  {t("common.showOnKtimatologio")}
+                </a>
+              )}
               <Link
                 href={`/${locale}/fields/${f.id}`}
                 className="text-xs text-green-600 hover:underline"
@@ -288,6 +299,18 @@ export default function FieldsTable({ fields, locale }: Props) {
                     >
                       <MapIcon />
                     </Link>
+                    {ktimatologioMapUrl(f.kaek) && (
+                      <a
+                        href={ktimatologioMapUrl(f.kaek)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-teal-700 hover:text-teal-900 transition-colors"
+                        title={t("common.showOnKtimatologio")}
+                        aria-label={t("common.showOnKtimatologio")}
+                      >
+                        <RegistryIcon />
+                      </a>
+                    )}
                     <Link
                       href={`/${locale}/fields/${f.id}`}
                       className="text-green-600 hover:text-green-800 transition-colors"
@@ -357,6 +380,18 @@ function DownloadIcon() {
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <polyline points="7 10 12 15 17 10" />
       <path d="M12 15V3" />
+    </svg>
+  );
+}
+
+function RegistryIcon() {
+  // Landmark with an external-link arrow: official registry, opens in a new tab
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M3 10l8-5 8 5" />
+      <path d="M5 10v8M9 10v8M13 10v8M17 10v3" />
+      <path d="M3 21h11" />
+      <path d="M16 21l5-5M17 16h4v4" />
     </svg>
   );
 }
