@@ -112,6 +112,83 @@ test.describe("Owner — Fields table", () => {
     expect(href).toContain(`KAEK%3D%27${encodeURIComponent(kaek)}%27`);
     expect(href).toContain("zoom_to_selection=true");
   });
+
+  test.describe("search", () => {
+    const searchBox = (page: import("@playwright/test").Page) =>
+      page.getByRole("searchbox", { name: /αναζήτηση|search/i });
+
+    // Opens the table and returns its data rows, skipping when there are no fields
+    async function openTable(page: import("@playwright/test").Page) {
+      await page.goto("/el/fields");
+      await page.getByRole("link", { name: /προσθήκη αγροτεμαχίου|add field/i }).waitFor({ timeout: 10000 });
+      const hasTable = await page.getByRole("table").isVisible().catch(() => false);
+      if (!hasTable) { test.skip(); }
+      return page.locator("tbody tr");
+    }
+
+    test("partial KAEK narrows the table to matching rows", async ({ page }) => {
+      const rows = await openTable(page);
+      const total = await rows.count();
+      const kaek = ((await rows.first().locator("td").nth(1).textContent()) ?? "").trim();
+      if (kaek.length < 6) { test.skip(); }
+
+      // A middle slice of the KAEK — %like%, not prefix or exact match
+      const part = kaek.slice(2, 8);
+      await searchBox(page).fill(part);
+      // The original row stays; other rows may match the slice in any column
+      await expect(rows.filter({ hasText: kaek }).first()).toBeVisible();
+      const count = await rows.count();
+      expect(count).toBeGreaterThan(0);
+      expect(count).toBeLessThanOrEqual(total);
+      await expect(page.locator("tfoot")).toContainText(`(${count})`);
+    });
+
+    test("matches Greek text without accents and case-insensitively", async ({ page }) => {
+      const rows = await openTable(page);
+      const name = ((await rows.first().locator("td").nth(3).textContent()) ?? "").trim();
+      if (!name) { test.skip(); }
+      const plain = name.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
+      await searchBox(page).fill(plain);
+      await expect(rows.filter({ hasText: name }).first()).toBeVisible();
+    });
+
+    test("no matches shows an empty state, clearing restores all rows", async ({ page }) => {
+      const rows = await openTable(page);
+      const total = await rows.count();
+
+      await searchBox(page).fill("zzqx-no-such-field-9");
+      await expect(page.getByText(/δεν βρέθηκαν αγροτεμάχια|no fields match/i).last()).toBeVisible();
+      await expect(page.locator("tfoot")).toContainText("(0)");
+
+      await page.getByRole("button", { name: /καθαρισμός αναζήτησης|clear search/i }).click();
+      await expect(searchBox(page)).toHaveValue("");
+      await expect(rows).toHaveCount(total);
+
+      // Esc also clears
+      await searchBox(page).fill("zzqx");
+      await searchBox(page).press("Escape");
+      await expect(rows).toHaveCount(total);
+    });
+
+    test("CSV export contains only the matching rows", async ({ page }) => {
+      const rows = await openTable(page);
+      const kaek = ((await rows.first().locator("td").nth(1).textContent()) ?? "").trim();
+      if (!kaek) { test.skip(); }
+      await searchBox(page).fill(kaek);
+      const count = await rows.count();
+
+      const [download] = await Promise.all([
+        page.waitForEvent("download"),
+        page.getByRole("button", { name: /εξαγωγή csv|export csv/i }).click(),
+      ]);
+      const stream = await download.createReadStream();
+      const chunks: Buffer[] = [];
+      for await (const chunk of stream) chunks.push(chunk as Buffer);
+      const lines = Buffer.concat(chunks).toString("utf-8").slice(1).split("\r\n");
+      expect(lines.length - 1).toBe(count);
+      for (const line of lines.slice(1)) expect(line).toContain(kaek);
+    });
+  });
 });
 
 test.describe("Owner — Add field form", () => {
