@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ktimatologioMapUrl } from "@/lib/ktimatologio";
-import { matchesSearch, searchTerms } from "@/lib/search";
+import { buildSearchText, matchesSearch, searchTerms } from "@/lib/search";
 
 interface CropOption {
   id: string;
@@ -36,6 +36,14 @@ interface Props {
 type SortKey = "name" | "officialArea" | "calculatedArea";
 type SortDir = "asc" | "desc";
 
+// Columns of the desktop table (incl. actions), for full-width rows
+const COLUMN_COUNT = 11;
+
+function fmt(n: number | null | undefined) {
+  if (n == null) return "—";
+  return n.toLocaleString("el-GR", { maximumFractionDigits: 0 });
+}
+
 export default function FieldsTable({ fields, locale }: Props) {
   const t = useTranslations();
   const router = useRouter();
@@ -59,16 +67,27 @@ export default function FieldsTable({ fields, locale }: Props) {
     }
   }
 
-  // Global search over every displayed column (both crop languages; numbers as shown and as raw digits)
-  const terms = searchTerms(query);
-  const filtered = rows.filter((f) =>
-    (ownershipFilter == null || f.ownershipPercentage === ownershipFilter) &&
-    matchesSearch([
+  // A filter whose chips are gone (last field at that % deleted, or a single option left) no longer applies
+  const activeOwnership =
+    ownershipFilter != null && ownershipOptions.length > 1 && ownershipOptions.includes(ownershipFilter)
+      ? ownershipFilter
+      : null;
+
+  // Global search over every displayed column (both crop languages; numbers as shown and as raw digits).
+  // The normalized text is built once per row; each keystroke only re-runs the substring checks.
+  const searchText = useMemo(
+    () => new Map(rows.map((f) => [f.id, buildSearchText([
       f.kaek, f.atak, f.name, f.fieldNumber,
       f.crop?.nameEl, f.crop?.nameEn, f.leaseholder?.name,
       ...[f.officialArea, f.calculatedArea].flatMap((n) => (n == null ? [] : [fmt(n), String(n)])),
       f.ownershipPercentage != null ? `${f.ownershipPercentage}%` : null,
-    ], terms)
+    ])])),
+    [rows]
+  );
+  const terms = searchTerms(query);
+  const filtered = rows.filter((f) =>
+    (activeOwnership == null || f.ownershipPercentage === activeOwnership) &&
+    matchesSearch(searchText.get(f.id) ?? "", terms)
   );
 
   const sorted = [...filtered].sort((a, b) => {
@@ -89,12 +108,7 @@ export default function FieldsTable({ fields, locale }: Props) {
 
   const cropName = (c: { nameEl: string; nameEn: string }) => locale.startsWith("el") ? c.nameEl : c.nameEn;
 
-  function fmt(n: number | null | undefined) {
-    if (n == null) return "—";
-    return n.toLocaleString("el-GR", { maximumFractionDigits: 0 });
-  }
-
-  // Exports exactly what the desktop table shows: current filter and sort order, no actions column.
+  // Exports exactly what the desktop table shows: current ownership filter, search and sort order, no actions column.
   // Semicolon delimiter + UTF-8 BOM so Greek-locale Excel opens it in columns with correct characters.
   function handleExportCsv() {
     const isEl = locale.startsWith("el");
@@ -135,22 +149,22 @@ export default function FieldsTable({ fields, locale }: Props) {
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      {/* Toolbar: ownership filter + CSV export */}
+      {/* Toolbar: ownership filter + search + CSV export */}
       <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
         {ownershipOptions.length > 1 && (
           <>
             <span className="text-xs font-medium text-gray-500">{t("fields.filterOwnership")}:</span>
             <button
               onClick={() => setOwnershipFilter(null)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${ownershipFilter == null ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${activeOwnership == null ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
             >
               {t("fields.filterAll")}
             </button>
             {ownershipOptions.map((pct) => (
               <button
                 key={pct}
-                onClick={() => setOwnershipFilter(ownershipFilter === pct ? null : pct)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${ownershipFilter === pct ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                onClick={() => setOwnershipFilter(activeOwnership === pct ? null : pct)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${activeOwnership === pct ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
               >
                 {pct}%
               </button>
@@ -295,8 +309,8 @@ export default function FieldsTable({ fields, locale }: Props) {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {sorted.length === 0 && (
-              <tr>
-                <td colSpan={11} className="px-4 py-8 text-center text-gray-500">
+              <tr data-empty-state>
+                <td colSpan={COLUMN_COUNT} className="px-4 py-8 text-center text-gray-500">
                   {t("fields.noResults", { query })}
                 </td>
               </tr>

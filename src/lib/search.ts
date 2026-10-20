@@ -5,7 +5,7 @@
 export function normalizeForSearch(s: string): string {
   return s
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/ς/g, "σ");
 }
@@ -15,10 +15,13 @@ export function searchTerms(query: string): string[] {
   return normalizeForSearch(query).split(/\s+/).filter(Boolean);
 }
 
-/** True when every term is a substring of at least one of the values. */
-export function matchesSearch(values: (string | null | undefined)[], terms: string[]): boolean {
-  if (terms.length === 0) return true;
+/** Normalized text of a row's values, built once per row and reused for every keystroke. */
+export function buildSearchText(values: (string | null | undefined)[]): string {
   // Join with a separator no term can contain, so a term never matches across two values
-  const haystack = normalizeForSearch(values.filter(Boolean).join("\u0000"));
-  return terms.every((term) => haystack.includes(term));
+  return normalizeForSearch(values.filter(Boolean).join("\u0000"));
+}
+
+/** True when every term is a substring of the row's search text. */
+export function matchesSearch(searchText: string, terms: string[]): boolean {
+  return terms.every((term) => searchText.includes(term));
 }

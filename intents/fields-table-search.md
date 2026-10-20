@@ -26,6 +26,9 @@ A search bar in the table toolbar, left of "Export CSV", that filters the table 
 
 - **Client-side only.** The page already loads all of the owner's fields; no API or DB change.
 - Matching lives in `src/lib/search.ts` (`normalizeForSearch`, `searchTerms`, `matchesSearch`).
+- Each row's normalized search text is built once (`useMemo` on the rows); a keystroke only re-runs substring checks.
+- An ownership filter whose chip disappeared (last field at that % deleted, or a single option left) is ignored, so the table can't get stuck empty.
+- Crop names match in both languages and areas match as raw digits, even though only one form is shown. Intentional: typing "wheat" in the Greek UI still finds wheat fields.
 - Footer "Total (N)" now counts visible rows (it previously counted all rows, which was wrong with the ownership filter too).
 - **Out of scope for v1:** highlighting matches; persisting the query in the URL (`?q=`); Greek↔Latin transliteration (`papa` does not match "Παπαδόπουλος").
 
@@ -36,3 +39,6 @@ A search bar in the table toolbar, left of "Export CSV", that filters the table 
 - [x] Unaccented, uppercase Greek finds accented text.
 - [x] No matches shows the empty state and "(0)" in the footer; × and Esc restore all rows.
 - [x] CSV export after a search contains only the matching rows.
+- [x] Several words must all match (AND across columns).
+- [x] Mobile cards follow the search and show the empty state.
+- [x] Unit tests for `src/lib/search.ts` (`tests/e2e/search.spec.ts`, no login needed).
