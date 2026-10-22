@@ -112,6 +112,118 @@ test.describe("Owner — Fields table", () => {
     expect(href).toContain(`KAEK%3D%27${encodeURIComponent(kaek)}%27`);
     expect(href).toContain("zoom_to_selection=true");
   });
+
+  test.describe("search", () => {
+    const searchBox = (page: import("@playwright/test").Page) =>
+      page.getByRole("searchbox", { name: /αναζήτηση|search/i });
+
+    // Opens the table and returns its data rows, skipping when there are no fields
+    async function openTable(page: import("@playwright/test").Page) {
+      await page.goto("/el/fields");
+      await page.getByRole("link", { name: /προσθήκη αγροτεμαχίου|add field/i }).waitFor({ timeout: 10000 });
+      const hasTable = await page.getByRole("table").isVisible().catch(() => false);
+      if (!hasTable) { test.skip(); }
+      // Data rows only — the "no results" row is marked data-empty-state
+      return page.locator("tbody tr:not([data-empty-state])");
+    }
+
+    test("partial KAEK narrows the table to matching rows", async ({ page }) => {
+      const rows = await openTable(page);
+      const total = await rows.count();
+      const kaek = ((await rows.first().locator("td").nth(1).textContent()) ?? "").trim();
+      if (kaek.length < 6) { test.skip(); }
+
+      // A middle slice of the KAEK — %like%, not prefix or exact match
+      const part = kaek.slice(2, 8);
+      await searchBox(page).fill(part);
+      // The original row stays; other rows may match the slice in any column
+      await expect(rows.filter({ hasText: kaek }).first()).toBeVisible();
+      const count = await rows.count();
+      expect(count).toBeGreaterThan(0);
+      expect(count).toBeLessThanOrEqual(total);
+      await expect(page.locator("tfoot")).toContainText(`(${count})`);
+    });
+
+    test("matches Greek text without accents and case-insensitively", async ({ page }) => {
+      const rows = await openTable(page);
+      const name = ((await rows.first().locator("td").nth(3).textContent()) ?? "").trim();
+      if (!name) { test.skip(); }
+      const plain = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+      await searchBox(page).fill(plain);
+      await expect(rows.filter({ hasText: name }).first()).toBeVisible();
+    });
+
+    test("no matches shows an empty state, clearing restores all rows", async ({ page }) => {
+      const rows = await openTable(page);
+      const total = await rows.count();
+
+      await searchBox(page).fill("zzqx-no-such-field-9");
+      await expect(page.locator("tbody tr[data-empty-state]")).toContainText(/δεν βρέθηκαν αγροτεμάχια|no fields match/i);
+      await expect(rows).toHaveCount(0);
+      await expect(page.locator("tfoot")).toContainText("(0)");
+
+      await page.getByRole("button", { name: /καθαρισμός αναζήτησης|clear search/i }).click();
+      await expect(searchBox(page)).toHaveValue("");
+      await expect(rows).toHaveCount(total);
+
+      // Esc also clears
+      await searchBox(page).fill("zzqx");
+      await expect(rows).toHaveCount(0);
+      await searchBox(page).press("Escape");
+      await expect(searchBox(page)).toHaveValue("");
+      await expect(rows).toHaveCount(total);
+    });
+
+    test("several words must all match, in any column", async ({ page }) => {
+      const rows = await openTable(page);
+      const first = rows.first();
+      const kaek = ((await first.locator("td").nth(1).textContent()) ?? "").trim();
+      const name = ((await first.locator("td").nth(3).textContent()) ?? "").trim().split(/\s+/)[0];
+      if (!kaek || !name) { test.skip(); }
+
+      // KAEK slice + first word of the name: two columns, both required
+      await searchBox(page).fill(`${kaek.slice(-4)} ${name}`);
+      await expect(rows.filter({ hasText: kaek }).first()).toBeVisible();
+      // Adding a word that matches nothing empties the table
+      await searchBox(page).fill(`${kaek.slice(-4)} ${name} zzqx-no-such-word`);
+      await expect(rows).toHaveCount(0);
+    });
+
+    test("filters the mobile cards too", async ({ page }) => {
+      await page.setViewportSize({ width: 393, height: 851 });
+      await page.goto("/el/fields");
+      await page.getByRole("link", { name: /προσθήκη αγροτεμαχίου|add field/i }).waitFor({ timeout: 10000 });
+      const box = searchBox(page);
+      // No fields → no table and no search box
+      if (!(await box.isVisible().catch(() => false))) { test.skip(); }
+
+      await box.fill("zzqx-no-such-field-9");
+      await expect(page.getByText(/δεν βρέθηκαν αγροτεμάχια|no fields match/i).first()).toBeVisible();
+      await box.press("Escape");
+      await expect(page.getByText(/δεν βρέθηκαν αγροτεμάχια|no fields match/i).first()).toBeHidden();
+    });
+
+    test("CSV export contains only the matching rows", async ({ page }) => {
+      const rows = await openTable(page);
+      const kaek = ((await rows.first().locator("td").nth(1).textContent()) ?? "").trim();
+      if (!kaek) { test.skip(); }
+      await searchBox(page).fill(kaek);
+      const count = await rows.count();
+
+      const [download] = await Promise.all([
+        page.waitForEvent("download"),
+        page.getByRole("button", { name: /εξαγωγή csv|export csv/i }).click(),
+      ]);
+      const stream = await download.createReadStream();
+      const chunks: Buffer[] = [];
+      for await (const chunk of stream) chunks.push(chunk as Buffer);
+      // slice(1) drops the UTF-8 BOM
+      const lines = Buffer.concat(chunks).toString("utf-8").slice(1).split("\r\n");
+      expect(lines.length - 1).toBe(count);
+      // Other rows may match the KAEK digits in another column, so only require the searched row
+      expect(lines.slice(1).some((line) => line.includes(kaek))).toBe(true);
+    });
+  });
 });
 
 test.describe("Owner — Add field form", () => {

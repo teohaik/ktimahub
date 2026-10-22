@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ktimatologioMapUrl } from "@/lib/ktimatologio";
+import { buildSearchText, matchesSearch, searchTerms } from "@/lib/search";
 
 interface CropOption {
   id: string;
@@ -35,6 +36,14 @@ interface Props {
 type SortKey = "name" | "officialArea" | "calculatedArea";
 type SortDir = "asc" | "desc";
 
+// Columns of the desktop table (incl. actions), for full-width rows
+const COLUMN_COUNT = 11;
+
+function fmt(n: number | null | undefined) {
+  if (n == null) return "—";
+  return n.toLocaleString("el-GR", { maximumFractionDigits: 0 });
+}
+
 export default function FieldsTable({ fields, locale }: Props) {
   const t = useTranslations();
   const router = useRouter();
@@ -43,6 +52,7 @@ export default function FieldsTable({ fields, locale }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [ownershipFilter, setOwnershipFilter] = useState<number | null>(null);
+  const [query, setQuery] = useState("");
 
   const ownershipOptions = Array.from(
     new Set(rows.map((f) => f.ownershipPercentage).filter((p): p is number => p != null))
@@ -57,9 +67,28 @@ export default function FieldsTable({ fields, locale }: Props) {
     }
   }
 
-  const filtered = ownershipFilter == null
-    ? rows
-    : rows.filter((f) => f.ownershipPercentage === ownershipFilter);
+  // A filter whose chips are gone (last field at that % deleted, or a single option left) no longer applies
+  const activeOwnership =
+    ownershipFilter != null && ownershipOptions.length > 1 && ownershipOptions.includes(ownershipFilter)
+      ? ownershipFilter
+      : null;
+
+  // Global search over every displayed column (both crop languages; numbers as shown and as raw digits).
+  // The normalized text is built once per row; each keystroke only re-runs the substring checks.
+  const searchText = useMemo(
+    () => new Map(rows.map((f) => [f.id, buildSearchText([
+      f.kaek, f.atak, f.name, f.fieldNumber,
+      f.crop?.nameEl, f.crop?.nameEn, f.leaseholder?.name,
+      ...[f.officialArea, f.calculatedArea].flatMap((n) => (n == null ? [] : [fmt(n), String(n)])),
+      f.ownershipPercentage != null ? `${f.ownershipPercentage}%` : null,
+    ])])),
+    [rows]
+  );
+  const terms = searchTerms(query);
+  const filtered = rows.filter((f) =>
+    (activeOwnership == null || f.ownershipPercentage === activeOwnership) &&
+    matchesSearch(searchText.get(f.id) ?? "", terms)
+  );
 
   const sorted = [...filtered].sort((a, b) => {
     let cmp = 0;
@@ -79,12 +108,7 @@ export default function FieldsTable({ fields, locale }: Props) {
 
   const cropName = (c: { nameEl: string; nameEn: string }) => locale.startsWith("el") ? c.nameEl : c.nameEn;
 
-  function fmt(n: number | null | undefined) {
-    if (n == null) return "—";
-    return n.toLocaleString("el-GR", { maximumFractionDigits: 0 });
-  }
-
-  // Exports exactly what the desktop table shows: current filter and sort order, no actions column.
+  // Exports exactly what the desktop table shows: current ownership filter, search and sort order, no actions column.
   // Semicolon delimiter + UTF-8 BOM so Greek-locale Excel opens it in columns with correct characters.
   function handleExportCsv() {
     const isEl = locale.startsWith("el");
@@ -125,40 +149,70 @@ export default function FieldsTable({ fields, locale }: Props) {
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      {/* Toolbar: ownership filter + CSV export */}
+      {/* Toolbar: ownership filter + search + CSV export */}
       <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
         {ownershipOptions.length > 1 && (
           <>
             <span className="text-xs font-medium text-gray-500">{t("fields.filterOwnership")}:</span>
             <button
               onClick={() => setOwnershipFilter(null)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${ownershipFilter == null ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${activeOwnership == null ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
             >
               {t("fields.filterAll")}
             </button>
             {ownershipOptions.map((pct) => (
               <button
                 key={pct}
-                onClick={() => setOwnershipFilter(ownershipFilter === pct ? null : pct)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${ownershipFilter === pct ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                onClick={() => setOwnershipFilter(activeOwnership === pct ? null : pct)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${activeOwnership === pct ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
               >
                 {pct}%
               </button>
             ))}
           </>
         )}
-        <button
-          type="button"
-          onClick={handleExportCsv}
-          className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          <DownloadIcon />
-          {t("fields.exportCsv")}
-        </button>
+        <div className="ml-auto flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-none sm:w-64">
+            <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400">
+              <SearchIcon />
+            </span>
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Escape") setQuery(""); }}
+              placeholder={t("fields.search")}
+              aria-label={t("fields.search")}
+              className="w-full pl-8 pr-8 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 [&::-webkit-search-cancel-button]:hidden"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                title={t("fields.searchClear")}
+                aria-label={t("fields.searchClear")}
+              >
+                <ClearIcon />
+              </button>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={handleExportCsv}
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <DownloadIcon />
+            {t("fields.exportCsv")}
+          </button>
+        </div>
       </div>
 
       {/* Mobile cards */}
       <div className="sm:hidden divide-y divide-gray-100">
+        {sorted.length === 0 && (
+          <p className="p-6 text-center text-sm text-gray-500">{t("fields.noResults", { query })}</p>
+        )}
         {sorted.map((f, i) => (
           <div key={f.id} className="p-4 space-y-1 cursor-pointer hover:bg-green-50 transition-colors" onClick={() => router.push(`/${locale}/fields/${f.id}`)}>
             <div className="flex items-start justify-between gap-2">
@@ -254,6 +308,13 @@ export default function FieldsTable({ fields, locale }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
+            {sorted.length === 0 && (
+              <tr data-empty-state>
+                <td colSpan={COLUMN_COUNT} className="px-4 py-8 text-center text-gray-500">
+                  {t("fields.noResults", { query })}
+                </td>
+              </tr>
+            )}
             {sorted.map((f, i) => (
               <tr
                 key={f.id}
@@ -334,7 +395,7 @@ export default function FieldsTable({ fields, locale }: Props) {
           <tfoot>
             <tr className="bg-green-50 border-t-2 border-green-200 text-sm font-semibold text-gray-800">
               <td className="px-4 py-3 text-xs text-gray-500" colSpan={5}>
-                {t("fields.total")} ({rows.length})
+                {t("fields.total")} ({sorted.length})
               </td>
               <td className="px-4 py-3 text-right tabular-nums">{fmt(totalOfficial)}</td>
               <td className="px-4 py-3 text-right tabular-nums">
@@ -371,6 +432,23 @@ function SortHeader({
         {active ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}
       </span>
     </button>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="11" cy="11" r="7" />
+      <path d="M21 21l-4.3-4.3" />
+    </svg>
+  );
+}
+
+function ClearIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
   );
 }
 
